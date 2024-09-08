@@ -229,9 +229,7 @@ namespace mr {
             const auto data_memcpy_bytes = data_bits / 8;
             std::memcpy(enc_frame.data_bytes, data_ptr, data_memcpy_bytes);
 
-            // const auto data_trailing_bytes = data_memcpy_bytes - (data_bits % 8 != 0);
-
-            for(unsigned i=data_memcpy_bytes*8; i<data_bits; i++) {
+            for(unsigned i=0; i<data_bits; i++) {
                 const auto global_byte_idx = i / 8;
                 const auto local_bit_idx = i % 8;
 
