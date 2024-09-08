@@ -156,6 +156,8 @@ namespace mr {
         constexpr static const auto parity_bits = parity_size_bits();
         constexpr static const auto max_ecc_bits = m * t;
 
+        constexpr static const auto k = data_bits; // for convenience
+
         static_assert(parity_bits <= max_ecc_bits, "effective number of configured parity bits exceed the maximum limit!");
 
         constexpr static unsigned n_data_bits_last_byte = data_bits % 8;
@@ -410,11 +412,11 @@ namespace mr {
                 auto &S = syndrome_elements;
                 const auto num_syndromes = 2*t;
 
-                for(size_t k=0; k<num_syndromes; k++) {
+                for(size_t si=0; si<num_syndromes; si++) {
 
                     // skip odd iterations for binary GF2 field
 
-                    if ((k & 1) != 0) {
+                    if ((si & 1) != 0) {
                         ++m;
                         continue;
                     }
@@ -423,7 +425,7 @@ namespace mr {
 
                     d = {};
                     for(size_t l=0; l<=L; l++)
-                        d += C[l] * S[k-l];
+                        d += C[l] * S[si-l];
 
                     if(d.poly().is_zero()) {
 
@@ -439,14 +441,14 @@ namespace mr {
                     const auto exponent = elp_type(d_b, m);
                     const auto delta = exponent * B;
 
-                    if (2*L <= k){
+                    if (2*L <= si){
                         B = C; // save for later
 
                         C -= delta.trimmed();
                         m = 1;
 
                         b = d; // save for later
-                        L = k + 1 - L;
+                        L = si + 1 - L;
 
                     } else {
                         C -= delta.trimmed();
