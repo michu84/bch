@@ -17,7 +17,7 @@ namespace mr {
         }
 
         constexpr gf2_polynomial(const base &other)
-        : base(other) {}
+            : base(other) {}
 
     private:
         using base::base; // hide the inherited ctor
@@ -32,37 +32,37 @@ namespace mr {
         constexpr static_gf2_polynomial() : base(Pwrs...) {} // represented value fixed by template args
 
         constexpr static_gf2_polynomial(const base &other)
-        : base(other) {}
+            : base(other) {}
 
     private:
         using base::base; // hide the inherited ctor
     };
 
-    // detect 128 bit builtin types
-    #ifdef __SIZEOF_INT128__
-        using int128_t  = __int128_t;
-        using uint128_t = __uint128_t;
+// detect 128 bit builtin types
+#ifdef __SIZEOF_INT128__
+    using int128_t  = __int128_t;
+    using uint128_t = __uint128_t;
 
-        // specialize polynomials with coeffs in GF(2) with casting as uint128_t
+    // specialize polynomials with coeffs in GF(2) with casting as uint128_t
 
-        template<unsigned max_order>
-        constexpr void gf2_polynomial_to_decimal(const polynomial<bit_t, max_order> &p, uint128_t &d)
-        {
-            const auto deg = p.degree();
-            d = 0;
-            for(auto i=0; i<=deg; i++)
-                d |= (p[i] << i);
+    template<unsigned max_order>
+    constexpr void gf2_polynomial_to_decimal(const polynomial<bit_t, max_order> &p, uint128_t &d)
+    {
+        const auto deg = p.degree();
+        d = 0;
+        for(auto i=0; i<=deg; i++)
+            d |= (p[i] << i);
+    }
+
+    template<unsigned max_order>
+    constexpr void decimal_to_gf2_polynomial(const uint128_t &d, polynomial<bit_t, max_order> &p)
+    {
+        // degree not known without clz
+        for(auto i=0; i<max_order; i++) {
+            const auto dbg = d & (1U << i);
+            p[i] = dbg;
         }
-
-        template<unsigned max_order>
-        constexpr void decimal_to_gf2_polynomial(const uint128_t &d, polynomial<bit_t, max_order> &p)
-        {
-            // degree not known without clz
-            for(auto i=0; i<max_order; i++) {
-                const auto dbg = d & (1U << i);
-                p[i] = dbg;
-            }
-        }
-    #endif
+    }
+#endif
 
 }

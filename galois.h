@@ -62,13 +62,13 @@ namespace mr {
 
             constexpr operator bool() const {
                 return powr_rep.has_value()
-                        && poly_rep != element_polynomial_type(0, 0);
+                       && poly_rep != element_polynomial_type(0, 0);
             }
 
             constexpr bool operator == (const element &other) const
             {
                 return powr_rep == other.powr_rep
-                        && poly_rep == other.poly_rep;
+                       && poly_rep == other.poly_rep;
             }
 
             constexpr element operator + (const element &other) const

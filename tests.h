@@ -1,14 +1,12 @@
 #pragma once
 
 #include "bch.h"
+#include "measure_time.h"
+
 #include <cstdint>
 #include <sstream>
 #include <string>
 #include <vector>
-
-#ifdef DEBUG_VERBOSE_ENC_DEC
-#include "measure_time.h"
-#endif
 
 void test_m5();
 void test_m7();
@@ -27,16 +25,16 @@ void corrupt_encoded_frame(auto &encoded, const auto add_errors, const auto msg_
     bool mask[msg_size_bits-1];
     unsigned target_bit_idx;
     for(unsigned i=0; i<add_errors; i++) {
-        
+
         // do not repeat same bit multiple times
-        
+
         do {
             target_bit_idx = rand() % msg_size_bits;
         } while(mask[target_bit_idx]); // try until we hit free bit
 
         mask[target_bit_idx] = true;
 
-        corrupt_bit_in_bytes(encoded.data_bytes, target_bit_idx);        
+        corrupt_bit_in_bytes(encoded.data_bytes, target_bit_idx);
     }
 
 // #ifdef DEBUG_VERBOSE
@@ -106,156 +104,167 @@ struct print_bch_type {
     }
 };
 
-template<unsigned m, 
+template<unsigned m,
          unsigned t,
          unsigned...PrimitivePolynomialCoeffs>
-int test_m_t_coeffs(unsigned add_errors) {
+struct test_m_t_coeffs {
     using bch_type = mr::bch<m, t, PrimitivePolynomialCoeffs...>;
 
+    void operator() (unsigned add_errors) const {
+
 #ifdef DEBUG_VERBOSE
-    bch_type::print_info();
+        bch_type::print_info();
 #endif
 
-    const std::string msg ="Hello\0";
+        // initialize a full length buffer so codec won't access unrelated memory if data size less than full capacity
 
-    const auto msg_bytes = msg.c_str();
-    const auto msg_size_bits = bch_type::data_bits + bch_type::parity_bits;
-    const auto msg_size_bytes = msg_size_bits / 8 + (msg_size_bits % 8 != 0);
+        char msg_buffer[bch_type::n_bytes];
+        std::memset(msg_buffer, 0, bch_type::n_bytes);
+        std::sprintf(msg_buffer, "Hello");
+        const std::string msg(msg_buffer, bch_type::n_data_bytes);
 
-    std::stringstream bch_type_ss;
-    print_bch_type<m, t, PrimitivePolynomialCoeffs...>{} (bch_type_ss);
+        const auto msg_bytes = msg.c_str();
+        const auto msg_size_bits = bch_type::data_bits + bch_type::parity_bits;
+        const auto msg_size_bytes = msg_size_bits / 8 + (msg_size_bits % 8 != 0);
 
-    const auto bch_type_str = bch_type_ss.str();
+        std::stringstream bch_type_ss;
+        print_bch_type<m, t, PrimitivePolynomialCoeffs...>{} (bch_type_ss);
 
-    std::stringstream encode_type_ss;
-    encode_type_ss << bch_type_str << "::encode_codeword...";
+        const auto bch_type_str = bch_type_ss.str();
 
-    auto encoded =
+        std::stringstream encode_type_ss;
+        encode_type_ss << bch_type_str << "::encode_codeword...";
+
+        auto encoded =
 #ifdef DEBUG_VERBOSE_ENC_DEC
-        mr::measure_time{} (encode_type_ss.str(), [&] {
-            return bch_type::encode_codeword(msg_bytes);
-        });
+            mr::measure_time{} (encode_type_ss.str(), [&] {
+                return bch_type::encode_codeword(msg_bytes);
+            });
 #else
-        bch_type::encode_codeword(msg_bytes);
+            bch_type::encode_codeword(msg_bytes);
 #endif
 
-    if(add_errors > 0
-        && encoded.has_value()) {
+        if(add_errors > 0
+            && encoded.has_value()) {
 
 #ifdef DEBUG_VERBOSE
-        printf("test poly:\t\t%s\n", mr::polynomial<bit_t, bch_type::n-1>::make_from_memory(encoded->data_bytes).to_string().c_str());
+            printf("test poly:\t\t%s\n", mr::polynomial<bit_t, bch_type::n-1>::make_from_memory(encoded->data_bytes).to_string().c_str());
 #endif
 
 #if 1
-        corrupt_encoded_frame(*encoded, add_errors, msg_size_bits);
+            corrupt_encoded_frame(*encoded, add_errors, msg_size_bits);
 #else
-        corrupt_encoded_frame_example_zero_syndrome_anomaly(*encoded); // rare anomaly that broke the previous decoder implementation for m=5, t=3, p=0,2,5
-        // corrupt_encoded_frame_example(*encoded); // just a working example
+            corrupt_encoded_frame_example_zero_syndrome_anomaly(*encoded); // rare anomaly that broke the previous decoder implementation for m=5, t=3, p=0,2,5
+            // corrupt_encoded_frame_example(*encoded); // just a working example
 #endif
 
 #if 0
 #ifdef DEBUG_VERBOSE
-        printf("test poly corrupted:   %s\n", polynomial<bit_t, bch_type::n-1>::make_from_memory(encoded->data_bytes).to_string().c_str());
+            printf("test poly corrupted:   %s\n", polynomial<bit_t, bch_type::n-1>::make_from_memory(encoded->data_bytes).to_string().c_str());
 #endif
 #endif
-    }
-
-    // uint8_t corrupted_copy[bch_type::n_bytes];
-    // std::copy(encoded->data_bytes, encoded->data_bytes + bch_type::n_bytes, corrupted_copy);
-    std::vector<uint8_t> corrupted_copy(encoded->data_bytes, encoded->data_bytes + bch_type::n_bytes);
-    
-    char decoded[msg_size_bytes];
-    std::memset(decoded, 0, msg_size_bytes);
-
-    if(encoded.has_value()) {
-        std::stringstream decode_type_ss;
-        decode_type_ss << bch_type_str << "::decode_codeword...";
-
-        const auto error_code =
-#ifdef DEBUG_VERBOSE_ENC_DEC
-            mr::measure_time{} (decode_type_ss.str(), [&] {
-                return bch_type::decode_codeword(*encoded, &decoded);
-            });
-#else
-            bch_type::decode_codeword(*encoded, &decoded);
-#endif
-
-        if(error_code < 0) {
-#ifdef DEBUG_VERBOSE
-            printf("detected %d errors\n", -error_code);
-#endif
-            assert(false);
         }
 
+        std::vector<uint8_t> corrupted_copy(encoded->data_bytes, encoded->data_bytes + bch_type::n_bytes);
+
+        char decoded[msg_size_bytes];
+        std::memset(decoded, 0, msg_size_bytes);
+
+        if(encoded.has_value()) {
+            std::stringstream decode_type_ss;
+            decode_type_ss << bch_type_str << "::decode_codeword...";
+
+            const auto error_code =
+#ifdef DEBUG_VERBOSE_ENC_DEC
+                mr::measure_time{} (decode_type_ss.str(), [&] {
+                    return bch_type::decode_codeword(*encoded, &decoded);
+                });
+#else
+                bch_type::decode_codeword(*encoded, &decoded);
+#endif
+
+            if(error_code < 0) {
 #ifdef DEBUG_VERBOSE
-        printf("%s test result:\n", bch_type_str.c_str());
+                printf("detected %d errors\n", -error_code);
+#endif
+                assert(false);
+            }
 
-        printf("input:\t\t");
-        print_as_hex(msg.c_str(), bch_type::n_data_bytes, false);
-        printf(" \"%s\"\n", msg.c_str());
+#ifdef DEBUG_VERBOSE
+            printf("%s test result:\n", bch_type_str.c_str());
 
-        printf("encoded:\t");
-        print_as_hex(encoded->data_bytes, encoded->n_bytes, true);
+            printf("input:\t\t");
+            print_as_hex(msg.c_str(), bch_type::n_data_bytes, false);
+            printf(" \"%s\"\n", msg.c_str());
 
-        printf("corrupted:\t");
-        print_as_hex(corrupted_copy, encoded->n_bytes, true);
+            printf("encoded:\t");
+            print_as_hex(encoded->data_bytes, encoded->n_bytes, true);
 
-        printf("decoded:\t");
-        print_as_hex(decoded, bch_type::n_data_bytes, false);
-        printf(" \"%s\"\n", decoded);
+            printf("corrupted:\t");
+            print_as_hex(corrupted_copy, encoded->n_bytes, true);
+
+            printf("decoded:\t");
+            print_as_hex(decoded, bch_type::n_data_bytes, false);
+            printf(" \"%s\"\n", decoded);
 #endif
 
 #if 1
-        for(size_t bit=0; bit<bch_type::data_bits; bit++) {
-            const auto byte_idx = bit / 8;
-            const auto bit_idx = bit % 8;
-            const auto lhs = decoded[byte_idx] & (1 << bit_idx);
-            const auto rhs = msg_bytes[byte_idx] & (1 << bit_idx);
+            for(size_t bit=0; bit<bch_type::data_bits; bit++) {
+                const auto byte_idx = bit / 8;
+                const auto bit_idx = bit % 8;
+                const auto lhs = decoded[byte_idx] & (1 << bit_idx);
+                const auto rhs = msg_bytes[byte_idx] & (1 << bit_idx);
 
-            if(lhs != rhs) {
-                printf("%s != %s (FAIL)\n", decoded, msg_bytes);
-                assert(false);
+                if(lhs != rhs) {
+                    printf("%s != %s (FAIL)\n", decoded, msg_bytes);
+                    assert(false);
+                }
             }
-        }
 #endif
+        }
     }
 
-    return 0;
-}
-
-template<unsigned m, 
-         unsigned t,
-         unsigned...PrimitivePolynomialCoeffs>
-int test_m_t_coeffs_iterator(unsigned n_random_errors, unsigned n_times) {
-    for(size_t j=n_random_errors; j>0; j--)
-    for(size_t i=0; i<n_times; i++) {
-        const auto result = test_m_t_coeffs<m, t, PrimitivePolynomialCoeffs...>(j);
-        assert(result >= 0);
+    void operator() (unsigned n_random_errors, unsigned n_times) const {
+        for(size_t i=0; i<n_times; i++)
+            (*this)(n_random_errors);
     }
-    
-    return 0;
-}
+};
 
 template<unsigned m,
          unsigned t,
          unsigned...PrimitivePolynomialCoeffs>
-int test_m_t_coeffs(unsigned n_random_errors, unsigned n_times) {
-    for(size_t i=0; i<n_times; i++) {
-        const auto result = test_m_t_coeffs<m, t, PrimitivePolynomialCoeffs...>(n_random_errors);
-        assert(result >= 0);
+struct test_m_t_coeffs_iterator {
+    void operator() (unsigned n_random_errors, unsigned n_times) const {
+        for(size_t j=n_random_errors; j>0; j--)
+            test_m_t_coeffs<m, t, PrimitivePolynomialCoeffs...> {}
+            (j, n_times);
     }
+};
 
-    return 0;
-}
+template<typename>
+struct bch_tester;
 
-template<unsigned m, 
-         unsigned t,
-         unsigned...PrimitivePolynomialCoeffs,
-         unsigned...S>
-int test_m_t_coeffs_seq(mr::seq<S...>, unsigned n_times = 1) {
-    (test_m_t_coeffs<m, t, PrimitivePolynomialCoeffs...>(S+1, n_times), ...);
-    
-    return 0;
-}
+template<unsigned m, unsigned t, unsigned...poly>
+struct bch_tester<mr::bch<m, t, poly...>> {
+    using test_procedure_type = test_m_t_coeffs<m, t, poly...>;
+    using print_procedure_type = print_bch_type<m, t, poly...>;
+
+    void operator() (auto repeats) const {
+        const auto started = mr::measure_time::start();
+        test_procedure_type{} (t, repeats);
+        const auto elapsed = mr::measure_time::end(started);
+
+        std::stringstream bch_type_ss;
+
+        print_procedure_type{}
+        (bch_type_ss);
+
+        printf("%s %d test iterations (encode -> add errors -> decode) took %f [s] (avg: %f [ms])\n\n",
+               bch_type_ss.str().c_str(),
+               repeats,
+               elapsed.count() / 1000000.0,
+               elapsed.count() / double(repeats) / 1000);
+    }
+};
 
 void test_all();

@@ -137,9 +137,9 @@ namespace mr {
 
                 poly[start_power + j] = bit_is_set;
 
-    #if 0
+#if 0
                 printf("polynomial, bit[%d,%d]: %s\n", global_byte_idx, local_bit_idx, bit_is_set ? "1" : "0");
-    #endif
+#endif
             }
 
             return poly;
@@ -147,19 +147,19 @@ namespace mr {
 
         constexpr unsigned degree() const
         {
-    #if 0
+#if 0
             for(unsigned i=max_order; i>=0; i--)
                 if(static_cast<bool>(coeffs[i])) // either bool or has operator bool() const
                     return i;
             return 0;
-    #else
+#else
             unsigned d=0;
             for(unsigned i=0; i<num_coeffs; i++) {
                 if(static_cast<bool>(coeffs[i]))
                     d = i;
             }
             return d;
-    #endif
+#endif
         }
 
         constexpr bool is_zero() const {
@@ -266,16 +266,16 @@ namespace mr {
             mul_result out;
 
             for(size_t i=0; i<degree()+1; i++)
-            for(size_t j=0; j<other.degree()+1; j++) {
-                const auto out_idx = i + j; // here we multiply
-                out[out_idx] = poly_coeff_add( // if coeffs are bool, it evaluates as modulo2
-                    poly_coeff_mul(
-                        coeffs[i],
-                        other.coeffs[j]
-                    ),
-                    out[out_idx]
-                );
-            }
+                for(size_t j=0; j<other.degree()+1; j++) {
+                    const auto out_idx = i + j; // here we multiply
+                    out[out_idx] = poly_coeff_add( // if coeffs are bool, it evaluates as modulo2
+                        poly_coeff_mul(
+                            coeffs[i],
+                            other.coeffs[j]
+                            ),
+                        out[out_idx]
+                    );
+                }
 
             return out;
         }

@@ -339,7 +339,7 @@ namespace mr {
             const auto v = codeword_poly_type::make_from_memory(encoded.data_bytes);
 
     #ifdef DEBUG_VERBOSE
-            printf("decoding poly:\t%s\n", v.to_string().c_str());
+            printf("decoding poly:\t\t%s\n", v.to_string().c_str());
     #endif
 
             syndrome_polynomials_type syndrome_polys;

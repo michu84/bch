@@ -5,11 +5,11 @@
 #define __use_constexpr_poly_division
 
 #ifdef __use_constexpr_poly_division
-    #define __assert_type static_assert
-    #define __call_ctx constexpr
+#define __assert_type static_assert
+#define __call_ctx constexpr
 #else
-    #define __assert_type assert
-    #define __call_ctx
+#define __assert_type assert
+#define __call_ctx
 #endif
 
 void test_m5()
@@ -17,11 +17,11 @@ void test_m5()
     constexpr auto m = 5;
     using poly_type = mr::polynomial<bit_t, m>;
     constexpr poly_type _x5_x2_1(
-                            1, 0, 
-                            1, 2, 
+                            1, 0,
+                            1, 2,
                             1, 5
-                        ), 
-                        _0, 
+                        ),
+                        _0,
                         _1(1, 0),
                         _x(1, 1),
                         _x5(1, 5);
@@ -35,7 +35,7 @@ void test_m5()
 
     __assert_type(div_result3.q == _0);
     __assert_type(div_result3.r == _x);
-    
+
     __call_ctx auto div_result2 = _x5_x2_1 / _1;
 
     __assert_type(div_result2.q == _x5_x2_1);
@@ -56,19 +56,20 @@ void test_m5()
     for(unsigned i=0; i<(1 << m); i++) {
         const auto element_poly = gf_poly_type(1, i);
         const auto test = element_poly / gf_x5_x2_1;
-        #if 0
-            std::cout << std::format("[{}]: ", i) << element_poly << " / " << gf_x5_x2_1 << ": q=" << test.q << ", r=" << test.r << std::endl;
-        #else
-            mr::polynomial<bit_t,m-1> final_r;
-            polynomial_copy_unsafe(test.r, final_r);
+#if 0
+        std::cout << std::format("[{}]: ", i) << element_poly << " / " << gf_x5_x2_1 << ": q=" << test.q << ", r=" << test.r << std::endl;
+#else
+        mr::polynomial<bit_t,m-1> final_r;
+        polynomial_copy_unsafe(test.r, final_r);
 
-            printf("[a^%2d]: %s / %s: q=%s, r=%s\n", 
-                i, 
-                element_poly.to_string().c_str(), 
-                gf_x5_x2_1.to_string().c_str(), 
-                test.q.to_string().c_str(), 
-                final_r.to_string().c_str());
-        #endif
+        printf("[a^%2d]: %s / %s: q=%s, r=%s\n",
+            i,
+            element_poly.to_string().c_str(),
+            gf_x5_x2_1.to_string().c_str(),
+            test.q.to_string().c_str(),
+            final_r.to_string().c_str()
+        );
+#endif
     }
     std::cout << std::endl;
 }
@@ -81,19 +82,20 @@ void test_m7()
     for(unsigned i=0; i<(1 << m); i++) {
         const auto element_poly = gf_poly_type(1, i);
         const auto test = element_poly / gf_x7_x6_1;
-        #if 0
+#if 0
             std::cout << std::format("[{}]: ", i) << element_poly << " / " << gf_x7_x6_1 << ": q=" << test.q << ", r=" << test.r << std::endl;
-        #else
-            mr::polynomial<bit_t,m-1> final_r;
-            polynomial_copy_unsafe(test.r, final_r);
+#else
+        mr::polynomial<bit_t,m-1> final_r;
+        polynomial_copy_unsafe(test.r, final_r);
 
-            printf("[a^%3d]: %s / %s: q=%s, r=%s\n", 
-                i, 
-                element_poly.to_string().c_str(), 
-                gf_x7_x6_1.to_string().c_str(), 
-                test.q.to_string().c_str(), 
-                final_r.to_string().c_str());
-        #endif
+        printf("[a^%3d]: %s / %s: q=%s, r=%s\n",
+            i,
+            element_poly.to_string().c_str(),
+            gf_x7_x6_1.to_string().c_str(),
+            test.q.to_string().c_str(),
+            final_r.to_string().c_str()
+        );
+#endif
     }
     std::cout << std::endl;
 }
