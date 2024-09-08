@@ -18,7 +18,7 @@ Header-only implementation.
 
 No 3rd party dependencies.
 
-## Notes
+## Notes on the C++ code
 
 This is an experimental demo project exploring the potential of template metaprogramming and compilation time code execution in the context of error correcting codes.
 
@@ -27,6 +27,55 @@ Operator overloading for polynomial and modulo arithmetic delivers inuitive and 
 Templated and constexpr polynomial and Galois field implementations allow representing constructs like polynomials with other kinds of polynomials as coefficients in a compact way. A practical example is the error locator polynomial used in decoding.
 
 The resulting top-level encode and decode routines are simple and easy to read.
+
+## Notes on the BCH codes
+
+Depending on the author, the types of binary BCH codes are usually described as BCH(n, k), BCH(n, k, t), BCH(m, k, t) or similar and generally can be characterised by the following parameters:
+
+- **m** is the power of prime q used to build the GF(q^m) field, q=2 in case of binary BCH
+- **n** = 2^**m** - 1, determines the codeword length (number of usable elements in GF(2^m))
+- **t** or **ECC** (error correction-capability) bits can be corrected in a single codeword in case of a detected errors, affects relation between number of usable data and parity bits present within a single codeword size
+- **primitive polynomial** example: **1 + x^3 + x^7**, determines the pattern of an emergent Galois field (2^m), may non-trivially affect the effective number of required parity bits because of some obscure effects
+- **k** number of usable data bits within a single BCH codeword, directly results from m (or n), t and primitive polynomial
+- **generator polynomial** is used to encode codewords, deduced from the above parameters and is often provided for reference together with the BCH code type
+
+Some parameters are often omitted in such a description and must be determined from the provided ones by the following inequality conditions:
+
+    t <= n
+    n-k <= m*t
+with
+
+    m >= 3 and t < 2^(m-1)
+
+## Usage
+
+The *mr::bch* codec uses the following representation based on **m**, **t** and **primitive polynomial** only:
+
+    mr::bch<m, t, poly...>
+
+where *poly...* term expands to the nonzero powers of the used primitive polynomial.
+    
+With
+- m = 7
+- t = 13
+- primitive polynomial = 1 + x^6 + x^7 (non-zero polynomial coefficient powers: 0, 6, 7)
+
+the resulting codec type is:
+
+    #include "bch.h"
+    using bch_type = mr::bch<7, 13, 0, 6, 7>;
+    
+Now it's simple to encode and decode consecutive codewords.
+
+    auto encoded = bch_type::encode_codeword(message_bytes);
+    
+    //
+    // transmission errors may appear here in encoded bits...    
+    //
+    
+    const auto result = bch_type::decode_codeword(*encoded, decoded_bytes);
+
+For more usage details, please refer to the code in tests.h, tests.cpp and main.cpp.
 
 ## Building
 
@@ -40,48 +89,15 @@ Here's list of configurations it builds for me so far:
 - Qt 6.7.2 for GCC 11 on Ubuntu 22.04 Linux 64-bit
 - Qt 6.8 beta4 for MinGW 13.1 on Windows 10 64-bit
 
-## Usage
-
-Using the codec requires three things:
-- **m** parameter, determines the single codeword length as (2^m)-1
-- **t** parameter represents the error correction capability (ECC), affects how many data and parity bits are used within a single codeword size resulting from specifying **m**
-- **primitive polynomial** determines the pattern of emergent Galois field (2^m) and is passed in as a variadic sequence of integer powers of its non-zero coefficients
-
-Next, plug the values into the *mr::bch<m, t, prim_poly...>* template to construct a usable type, for example:
-    
-    #include "bch.h"    
-    using bch_type = mr::bch<m, t, prim_poly...>;
-    
-With the following template parameters:
-- m = 7
-- t = 13
-- primitive polynomial = 1 + x^6 + x^7 (non-zero polynomial coefficient powers: 0, 6, 7)
-
-the resulting codec type is:
-
-    using bch_type = mr::bch<7, 13, 0, 6, 7>;
-    
-Now it's simple to encode and decode consecutive codewords.
-
-    auto encoded = bch_type::encode_codeword(message_bytes);
-    
-    //
-    // transmission errors may appear here in encoded bits...    
-    //
-    
-    const auto result = bch_type::decode_codeword(*encoded, decoded_bytes);
-
-For more details, please refer to the code in tests.h, tests.cpp and main.cpp.
-
 ## main.cpp
 
-Implements an executable application running a single test procedure for m=7, t=13 and primitive polynomial 1 + x^6 + x^7.
+Implements an executable running a single test procedure for m=7, t=13 and the primitive polynomial 1 + x^6 + x^7.
 
-This BCH codec configuration results in a codeword of 127 bits with 50 (usable) data bits and 77 (error correcting) parity bits.
+This BCH code configuration results in a codeword of 127 bits with 50 (usable) data bits and 77 (error correcting) parity bits.
 
-Test message is a zero terminated "Hello" text. Using 48 data bits out of 50 available wastes 2 bits in each codeword, but still works good enough for a demo.
+The test message is a zero terminated "Hello" text. Using 48 data bits out of 50 available wastes 2 bits in each codeword, but still works good enough for a demo.
 
-Test procedure is running 100 iterations, corrupting the encoded codeword with t random errors in each.
+The test procedure is running 100 iterations, corrupting the encoded codeword with t random errors in each.
 
 The number of iterations can be controlled by passing a single number as command line argument to the compiled executable.
 
@@ -94,8 +110,12 @@ or
 
 will execute 1000 iterations instead of 100.
 
-## Example test output
-    
+## Example of the ATSC A/336
+
+BCH from the [ATSC A/336 specification](https://www.atsc.org/wp-content/uploads/2024/04/A336-2024-04-Content-Recovery-in-Redistribution-Scenarios.pdf) for audio watermarking in essence boils down to the codec introduced in the Usage section:
+
+    mr::bch<7, 13, 0, 6, 7>
+
 With no DEBUG_* compiler flags defined, code in main.cpp prints only one line:
 
     mr::bch<7, 13, 0, 6, 7> 100 test iterations (encode -> add random errors -> decode) took 7.987698 [s] (avg: 79.876980 [ms])
@@ -327,6 +347,59 @@ The output after adding also the DEBUG_VERBOSE to the compiler defines prints th
     corrupted:  (hex: ff ff 07 6d 06 5b 14 af 7b 84 83 0c 8d 6d 0d 40)
     decoded:    (hex: 48 65 6c 6c 6f 00 00) "Hello"
 
+## Example of the Phobos Lander
+
+As described in [this paper](https://ipnpr.jpl.nasa.gov/progress_report/42-94/94V.PDF), the Phobos Lander telemetry system used a BCH(128, 113) with 2 error-correcting capability, which is a BCH(127, 113) with an additional parity bit.
+
+The paper also describes the polynomials used, theese are: 
+
+    primitive = 1 + x^3 + x7
+
+and
+
+    generator = 1 + x + x^2 + x^4 + x^5 + x^6 + x^8 + x^9 + x^14
+
+
+Interpreting for the mr::bch codec and knowing the BCH inequality condition
+    
+    n = 2^m - 1
+    n - k <= m * t
+
+then (2^m-1) - m*t = 113 = k and works for m=7, t=2 and BCH(127, 113) together with given primitive polynomial translates to the following codec type:
+
+    mr::bch<7, 2, 0, 3, 7>
+
+The debug output correctly prints the matching generator polynomial (msb...lsb: 100001101110111):
+    
+    BCH (m=7, n=127, t=ECC=2, data_bits=113, parity_bits=14, primitive_polynomial=10001001):
+    ...
+    cyclotomic cosets [a^  1]: 1, 2, 4, 8, 16, 32, 64, 
+    cyclotomic cosets [a^  3]: 3, 6, 12, 24, 48, 96, 65, 
+    minimal polynomial a^[  1] {msb...lsb}: 10001001
+    minimal polynomial a^[  3] {msb...lsb}: 10001111
+    generator polynomial (14th order) {msb...lsb}: 100001101110111
+    mr::bch<7, 2, 0, 3, 7>::encode_codeword... execution took 635 us (0.000635 s)
+    test poly:      0000000000000000000000000000000000000000000000000000000000000000000000000011011110110110001101100011001010100100010110000001111
+    testing by corrupting message bit 36 @ byte 4
+    testing by corrupting message bit 7 @ byte 0
+    decoding poly:  0000000000000000000000000000000000000000000000000000000000000000000000000011011110110110000101100011001010100100010110010001111
+    decoding bit errors...
+    syndrome[0]: 1101001 --> a^108
+    syndrome[1]: 1101001 --> a^ 89
+    syndrome[2]: 1111101 --> a^  2
+    syndrome[3]: 1101001 --> a^ 51
+    found error locator polynomial root @ a^ 91 --> error location: a^ 36
+    found error locator polynomial root @ a^120 --> error location: a^  7
+    corrupted (2 errs): 0000000000000000000000000000000000000000000000000000000000000000000000000011011110110110000101100011001010100100010110010001111
+    error mask:         0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000010000000
+    corrected:          0000000000000000000000000000000000000000000000000000000000000000000000000011011110110110001101100011001010100100010110000001111
+    mr::bch<7, 2, 0, 3, 7>::decode_codeword... execution took 17757 us (0.017757 s)
+    mr::bch<7, 2, 0, 3, 7> test result:
+    input:      (hex: 48 65 6c 6c 6f 00 00 00 00 00 00 00 00 00 00) "Hello"
+    encoded:    (hex: 0f 2c 52 19 1b db 1b 00 00 00 00 00 00 00 00 00)
+    corrupted:  (hex: 8f 2c 52 19 0b db 1b 00 00 00 00 00 00 00 00 00)
+    decoded:    (hex: 48 65 6c 6c 6f 00 00 00 00 00 00 00 00 00 00) "Hello"
+
 ## TODO's
 
 - more code refactoring
@@ -339,7 +412,6 @@ The output after adding also the DEBUG_VERBOSE to the compiler defines prints th
 - even more rigorous automatic tests after primitive polynomial deduction is implemented
 - try alternative polynomial implementation
 - check the dissassembly
-- user-provided generator polynomials
 
 ## License
 
