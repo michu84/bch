@@ -118,16 +118,16 @@ BCH from the [ATSC A/336 specification](https://www.atsc.org/wp-content/uploads/
 
 With no DEBUG_* compiler flags defined, code in main.cpp prints only one line:
 
-    mr::bch<7, 13, 0, 6, 7> 100 test iterations (encode -> add random errors -> decode) took 7.987698 [s] (avg: 79.876980 [ms])
+    mr::bch<7, 13, 0, 6, 7> 100 test iterations (encode -> add errors -> decode) took 4.046874 [s] (avg: 40.468740 [ms])
 
 Adding the DEBUG_VERBOSE_ENC_DEC to the compiler defines makes one line appear for each encode/decode routine execution:
 
-    mr::bch<7, 13, 0, 6, 7>::encode_codeword... execution took 2824 us (0.002824 s)
-    mr::bch<7, 13, 0, 6, 7>::decode_codeword... execution took 74724 us (0.074724 s)
+    mr::bch<7, 13, 0, 6, 7>::encode_codeword... execution took 201 us (0.000201 s)
+    mr::bch<7, 13, 0, 6, 7>::decode_codeword... execution took 43810 us (0.04381 s)
 
 The output after adding also the DEBUG_VERBOSE to the compiler defines prints the full debug output for every test iteration, including the full Galois field summary:
 
-    BCH (m=7, n=127, t=ECC=13, data_bits=50, parity_bits=77, primitive_polynomial=11000001)
+    BCH (m=7, n=127, t=ECC=13, data_bits=50, parity_bits=77, primitive_polynomial=11000001):
     Galois field (2^m), m=7, n=2^m-1=127:
     [a^  0]: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001 % 11000001 = 0000001
     [a^  1]: 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010 % 11000001 = 0000010
@@ -281,70 +281,70 @@ The output after adding also the DEBUG_VERBOSE to the compiler defines prints th
     minimal polynomial a^[ 21] {msb...lsb}: 11010011
     minimal polynomial a^[ 23] {msb...lsb}: 11100101
     generator polynomial (77th order) {msb...lsb}: 111101100111011101100000001110000101111000110101100100001111100011001000100101
-    mr::bch<7, 13, 0, 6, 7>::encode_codeword... execution took 2781 us (0.002781 s)
+    mr::bch<7, 13, 0, 6, 7>::encode_codeword... execution took 205 us (0.000205 s)
     test poly:      0000000000011011110110110001101100011001010100100000100101110111010111100010100010110110001110001101101010001111111111111111111
-    testing by corrupting message bit 81 @ byte 10
-    testing by corrupting message bit 35 @ byte 4
-    testing by corrupting message bit 70 @ byte 8
+    testing by corrupting message bit 123 @ byte 15
+    testing by corrupting message bit 40 @ byte 5
+    testing by corrupting message bit 47 @ byte 5
+    testing by corrupting message bit 68 @ byte 8
+    testing by corrupting message bit 94 @ byte 11
+    testing by corrupting message bit 55 @ byte 6
+    testing by corrupting message bit 8 @ byte 1
+    testing by corrupting message bit 74 @ byte 9
     testing by corrupting message bit 22 @ byte 2
-    testing by corrupting message bit 36 @ byte 4
-    testing by corrupting message bit 126 @ byte 15
-    testing by corrupting message bit 85 @ byte 10
-    testing by corrupting message bit 71 @ byte 8
-    testing by corrupting message bit 83 @ byte 10
-    testing by corrupting message bit 79 @ byte 9
-    testing by corrupting message bit 111 @ byte 13
-    testing by corrupting message bit 95 @ byte 11
-    testing by corrupting message bit 33 @ byte 4
-    decoding poly:  1000000000011010110110110001101000011001000001110000100011110111010111100010100010110110000011001101101000001111111111111111111
+    testing by corrupting message bit 7 @ byte 0
+    testing by corrupting message bit 1 @ byte 0
+    testing by corrupting message bit 64 @ byte 8
+    testing by corrupting message bit 97 @ byte 12
+    decoding poly:  0001000000011011110110110001111110011001010100100000000101010101010111110010100110110100001110001101101000001111111111001111101
     decoding bit errors...
-    syndrome[0]: 0001000 --> a^  3
-    syndrome[1]: 0001000 --> a^  6
-    syndrome[2]: 1110100 --> a^102
-    syndrome[3]: 0001000 --> a^ 12
-    syndrome[4]: 1100011 --> a^125
-    syndrome[5]: 1110100 --> a^ 77
-    syndrome[6]: 1001100 --> a^122
-    syndrome[7]: 0001000 --> a^ 24
-    syndrome[8]: 1101110 --> a^ 40
-    syndrome[9]: 1100011 --> a^123
-    syndrome[10]: 1010110 --> a^ 45
-    syndrome[11]: 1110100 --> a^ 27
-    syndrome[12]: 1010011 --> a^114
-    syndrome[13]: 1001100 --> a^117
-    syndrome[14]: 1101111 --> a^117
-    syndrome[15]: 0001000 --> a^ 48
-    syndrome[16]: 1101110 --> a^  5
-    syndrome[17]: 1101110 --> a^ 80
-    syndrome[18]: 1011111 --> a^ 22
-    syndrome[19]: 1100011 --> a^119
-    syndrome[20]: 0111001 --> a^ 62
-    syndrome[21]: 1010110 --> a^ 90
-    syndrome[22]: 0000101 --> a^  9
-    syndrome[23]: 1110100 --> a^ 54
-    syndrome[24]: 1011111 --> a^ 49
-    syndrome[25]: 1010011 --> a^101
-    found error locator polynomial root @ a^  1 --> error location: a^126
-    found error locator polynomial root @ a^ 16 --> error location: a^111
-    found error locator polynomial root @ a^ 32 --> error location: a^ 95
-    found error locator polynomial root @ a^ 42 --> error location: a^ 85
-    found error locator polynomial root @ a^ 44 --> error location: a^ 83
-    found error locator polynomial root @ a^ 46 --> error location: a^ 81
-    found error locator polynomial root @ a^ 48 --> error location: a^ 79
-    found error locator polynomial root @ a^ 56 --> error location: a^ 71
-    found error locator polynomial root @ a^ 57 --> error location: a^ 70
-    found error locator polynomial root @ a^ 91 --> error location: a^ 36
-    found error locator polynomial root @ a^ 92 --> error location: a^ 35
-    found error locator polynomial root @ a^ 94 --> error location: a^ 33
+    syndrome[0]: 0010110 --> a^ 41
+    syndrome[1]: 0010110 --> a^ 82
+    syndrome[2]: 0001001 --> a^ 46
+    syndrome[3]: 0010110 --> a^ 37
+    syndrome[4]: 1000010 --> a^ 52
+    syndrome[5]: 0001001 --> a^ 92
+    syndrome[6]: 0000110 --> a^ 13
+    syndrome[7]: 0010110 --> a^ 74
+    syndrome[8]: 0100000 --> a^ 45
+    syndrome[9]: 1000010 --> a^104
+    syndrome[10]: 1100000 --> a^106
+    syndrome[11]: 0001001 --> a^ 57
+    syndrome[12]: 0100100 --> a^ 92
+    syndrome[13]: 0000110 --> a^ 26
+    syndrome[14]: 0100001 --> a^ 34
+    syndrome[15]: 0010110 --> a^ 21
+    syndrome[16]: 0100000 --> a^ 85
+    syndrome[17]: 0100000 --> a^ 90
+    syndrome[18]: 0011010 --> a^ 43
+    syndrome[19]: 1000010 --> a^ 81
+    syndrome[20]: 1110010 --> a^ 83
+    syndrome[21]: 1100000 --> a^ 85
+    syndrome[22]: 1100100 --> a^ 75
+    syndrome[23]: 0001001 --> a^114
+    syndrome[24]: 0011010 --> a^ 90
+    syndrome[25]: 0100100 --> a^ 57
+    found error locator polynomial root @ a^  4 --> error location: a^123
+    found error locator polynomial root @ a^ 30 --> error location: a^ 97
+    found error locator polynomial root @ a^ 33 --> error location: a^ 94
+    found error locator polynomial root @ a^ 53 --> error location: a^ 74
+    found error locator polynomial root @ a^ 59 --> error location: a^ 68
+    found error locator polynomial root @ a^ 63 --> error location: a^ 64
+    found error locator polynomial root @ a^ 72 --> error location: a^ 55
+    found error locator polynomial root @ a^ 80 --> error location: a^ 47
+    found error locator polynomial root @ a^ 87 --> error location: a^ 40
     found error locator polynomial root @ a^105 --> error location: a^ 22
-    corrupted (13 errs):    1000000000011010110110110001101000011001000001110000100011110111010111100010100010110110000011001101101000001111111111111111111
-    error mask:             1000000000000001000000000000000100000000010101010000000110000000000000000000000000000000001101000000000010000000000000000000000
+    found error locator polynomial root @ a^119 --> error location: a^  8
+    found error locator polynomial root @ a^120 --> error location: a^  7
+    found error locator polynomial root @ a^126 --> error location: a^  1
+    corrupted (13 errs):    0001000000011011110110110001111110011001010100100000000101010101010111110010100110110100001110001101101000001111111111001111101
+    error mask:             0001000000000000000000000000010010000000000000000000100000100010000000010000000100000010000000000000000010000000000000110000010
     corrected:              0000000000011011110110110001101100011001010100100000100101110111010111100010100010110110001110001101101010001111111111111111111
-    mr::bch<7, 13, 0, 6, 7>::decode_codeword... execution took 89819 us (0.089819 s)
+    mr::bch<7, 13, 0, 6, 7>::decode_codeword... execution took 43884 us (0.043884 s)
     mr::bch<7, 13, 0, 6, 7> test result:
     input:      (hex: 48 65 6c 6c 6f 00 00) "Hello"
     encoded:    (hex: ff ff 47 6d 1c 5b 14 af bb 04 a9 8c 8d ed 0d 00)
-    corrupted:  (hex: ff ff 07 6d 06 5b 14 af 7b 84 83 0c 8d 6d 0d 40)
+    corrupted:  (hex: 7d fe 07 6d 1c da 94 af aa 00 a9 cc 8f ed 0d 08)
     decoded:    (hex: 48 65 6c 6c 6f 00 00) "Hello"
 
 ## Example of the Phobos Lander
@@ -378,26 +378,26 @@ The debug output correctly prints the matching generator polynomial (msb...lsb: 
     minimal polynomial a^[  1] {msb...lsb}: 10001001
     minimal polynomial a^[  3] {msb...lsb}: 10001111
     generator polynomial (14th order) {msb...lsb}: 100001101110111
-    mr::bch<7, 2, 0, 3, 7>::encode_codeword... execution took 635 us (0.000635 s)
+    mr::bch<7, 2, 0, 3, 7>::encode_codeword... execution took 238 us (0.000238 s)
     test poly:      0000000000000000000000000000000000000000000000000000000000000000000000000011011110110110001101100011001010100100010110000001111
-    testing by corrupting message bit 36 @ byte 4
-    testing by corrupting message bit 7 @ byte 0
-    decoding poly:  0000000000000000000000000000000000000000000000000000000000000000000000000011011110110110000101100011001010100100010110010001111
+    testing by corrupting message bit 25 @ byte 3
+    testing by corrupting message bit 1 @ byte 0
+    decoding poly:  0000000000000000000000000000000000000000000000000000000000000000000000000011011110110110001101100011011010100100010110000001101
     decoding bit errors...
-    syndrome[0]: 1101001 --> a^108
-    syndrome[1]: 1101001 --> a^ 89
-    syndrome[2]: 1111101 --> a^  2
-    syndrome[3]: 1101001 --> a^ 51
-    found error locator polynomial root @ a^ 91 --> error location: a^ 36
-    found error locator polynomial root @ a^120 --> error location: a^  7
-    corrupted (2 errs): 0000000000000000000000000000000000000000000000000000000000000000000000000011011110110110000101100011001010100100010110010001111
-    error mask:         0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000010000000
+    syndrome[0]: 0110111 --> a^ 57
+    syndrome[1]: 0110111 --> a^114
+    syndrome[2]: 0101110 --> a^101
+    syndrome[3]: 0110111 --> a^101
+    found error locator polynomial root @ a^102 --> error location: a^ 25
+    found error locator polynomial root @ a^126 --> error location: a^  1
+    corrupted (2 errs): 0000000000000000000000000000000000000000000000000000000000000000000000000011011110110110001101100011011010100100010110000001101
+    error mask:         0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000010
     corrected:          0000000000000000000000000000000000000000000000000000000000000000000000000011011110110110001101100011001010100100010110000001111
-    mr::bch<7, 2, 0, 3, 7>::decode_codeword... execution took 17757 us (0.017757 s)
+    mr::bch<7, 2, 0, 3, 7>::decode_codeword... execution took 19659 us (0.019659 s)
     mr::bch<7, 2, 0, 3, 7> test result:
-    input:      (hex: 48 65 6c 6c 6f 00 00 00 00 00 00 00 00 00 00) "Hello"
+    input:  (hex: 48 65 6c 6c 6f 00 00 00 00 00 00 00 00 00 00) "Hello"
     encoded:    (hex: 0f 2c 52 19 1b db 1b 00 00 00 00 00 00 00 00 00)
-    corrupted:  (hex: 8f 2c 52 19 0b db 1b 00 00 00 00 00 00 00 00 00)
+    corrupted:  (hex: 0d 2c 52 1b 1b db 1b 00 00 00 00 00 00 00 00 00)
     decoded:    (hex: 48 65 6c 6c 6f 00 00 00 00 00 00 00 00 00 00) "Hello"
 
 ## TODO's
