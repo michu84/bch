@@ -22,7 +22,8 @@ void corrupt_bit_in_bytes(uint8_t *bytes, const auto corrupted_bit_idx) {
 }
 
 void corrupt_encoded_frame(auto &encoded, const auto add_errors, const auto msg_size_bits) {
-    bool mask[msg_size_bits-1];
+    bool mask[msg_size_bits] = {};
+
     unsigned target_bit_idx;
     for(unsigned i=0; i<add_errors; i++) {
 
@@ -118,14 +119,13 @@ struct test_m_t_coeffs {
 
         // initialize a full length buffer so codec won't access unrelated memory if data size less than full capacity
 
-        char msg_buffer[bch_type::n_bytes];
-        std::memset(msg_buffer, 0, bch_type::n_bytes);
+        char msg_buffer[bch_type::n_bytes] = {};
         std::sprintf(msg_buffer, "Hello");
         const std::string msg(msg_buffer, bch_type::n_data_bytes);
 
         const auto msg_bytes = msg.c_str();
-        const auto msg_size_bits = bch_type::data_bits + bch_type::parity_bits;
-        const auto msg_size_bytes = msg_size_bits / 8 + (msg_size_bits % 8 != 0);
+        constexpr auto msg_size_bits = bch_type::data_bits + bch_type::parity_bits;
+        constexpr auto msg_size_bytes = msg_size_bits / 8 + (msg_size_bits % 8 != 0);
 
         std::stringstream bch_type_ss;
         print_bch_type<m, t, PrimitivePolynomialCoeffs...>{} (bch_type_ss);
@@ -251,7 +251,10 @@ struct bch_tester<mr::bch<m, t, poly...>> {
 
     void operator() (auto repeats) const {
         const auto started = mr::measure_time::start();
-        test_procedure_type{} (t, repeats);
+
+        test_procedure_type{}
+        (t, repeats);
+
         const auto elapsed = mr::measure_time::end(started);
 
         std::stringstream bch_type_ss;

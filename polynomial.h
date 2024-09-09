@@ -101,16 +101,12 @@ namespace mr {
         using coeff_type = C;
 
         constexpr static auto max_order = MaxOrder;
-
         constexpr static auto num_coeffs = max_order + 1;
 
-    #if 1
-        coeff_type coeffs[num_coeffs] = {{ coeff_type{} }};
-    #else
-        std::array<coeff_type, num_coeffs> coeffs; // TODO: ideally, for T=bool it could should be preferred to have std::bitset<num_coeffs> instead
-    #endif
+        coeff_type coeffs[num_coeffs] = {};
 
-        constexpr polynomial() {}
+        constexpr polynomial()
+            : coeffs({}) {}
 
         template<typename...Args>
         constexpr polynomial(const coeff_type &coeff_x, const unsigned &x_power, Args &&...args)
@@ -265,14 +261,14 @@ namespace mr {
 
             mul_result out;
 
-            for(size_t i=0; i<degree()+1; i++)
-                for(size_t j=0; j<other.degree()+1; j++) {
+            for(size_t i=0; i<num_coeffs; i++)
+                for(size_t j=0; j<other.num_coeffs; j++) {
                     const auto out_idx = i + j; // here we multiply
                     out[out_idx] = poly_coeff_add( // if coeffs are bool, it evaluates as modulo2
                         poly_coeff_mul(
                             coeffs[i],
                             other.coeffs[j]
-                            ),
+                        ),
                         out[out_idx]
                     );
                 }
@@ -345,7 +341,7 @@ namespace mr {
     template<typename T, unsigned from_order, unsigned to_order>
     constexpr void polynomial_copy_unsafe(const polynomial<T,from_order> &from, polynomial<T,to_order> &to)
     {
-        const auto limit = std::min(from.degree(), to_order);
+        const auto limit = std::min(from_order, to_order);
         for(unsigned i=0; i<limit+1; i++)
             to[i] = from[i];
     }
