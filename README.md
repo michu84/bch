@@ -395,7 +395,7 @@ The debug output correctly prints the matching generator polynomial (msb...lsb: 
     corrected:          0000000000000000000000000000000000000000000000000000000000000000000000000011011110110110001101100011001010100100010110000001111
     mr::bch<7, 2, 0, 3, 7>::decode_codeword... execution took 19659 us (0.019659 s)
     mr::bch<7, 2, 0, 3, 7> test result:
-    input:  (hex: 48 65 6c 6c 6f 00 00 00 00 00 00 00 00 00 00) "Hello"
+    input:      (hex: 48 65 6c 6c 6f 00 00 00 00 00 00 00 00 00 00) "Hello"
     encoded:    (hex: 0f 2c 52 19 1b db 1b 00 00 00 00 00 00 00 00 00)
     corrupted:  (hex: 0d 2c 52 1b 1b db 1b 00 00 00 00 00 00 00 00 00)
     decoded:    (hex: 48 65 6c 6c 6f 00 00 00 00 00 00 00 00 00 00) "Hello"
