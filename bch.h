@@ -554,7 +554,7 @@ namespace mr {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         static void print_bch_info() {
-            printf("BCH (m=%d, n=%d, t=ECC=%d, data_bits=%ld, parity_bits=%ld, primitive_polynomial=%s):\n",
+            printf("BCH (m=%d, n=%d, t=ECC=%d, k=data_bits=%ld, parity_bits=%ld, primitive_polynomial=%s):\n",
                    m, n, t, data_size_bits(), parity_size_bits(), galois_field_type::primitive_polynomial.to_string().c_str());
         }
 
