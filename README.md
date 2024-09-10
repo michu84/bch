@@ -53,7 +53,7 @@ The *mr::bch* codec uses the following representation based on **m**, **t** and 
 
     mr::bch<m, t, poly...>
 
-where *poly...* term expands to the nonzero powers of the used primitive polynomial.
+where *poly...* term expands to the nonzero coefficient powers of the used primitive polynomial.
     
 With
 - m = 7
