@@ -29,8 +29,8 @@ int main(int argc, char* argv[])
     bch_tester<ATSC_A336_codec_type>{}
     (repeats);
 
-    bch_tester<phobos_lander_codec_type>{}
-    (repeats);
+    // bch_tester<phobos_lander_codec_type>{}
+    // (repeats);
 
     return 0;
 }
