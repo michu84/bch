@@ -203,40 +203,25 @@ namespace mr {
             uint8_t data_bytes[n_bytes]; // data + parity, scrambling mode doesn't affect size
         };
 
-        static std::optional<encoded_frame> encode_codeword(const void *data_ptr, size_t offset_bits = 0) {
-
-            // it processes bch_type::data_bits bits so make sure this amount is available after data
-
-            const auto data_bytes = static_cast<const uint8_t *>(data_ptr);
-
-            encoded_frame enc_frame;
-            std::memset(enc_frame.data_bytes, 0, n_bytes);
-
-            static_assert(generator_polynomial.degree() > 0, "");
-
-            const auto _x = polynomial<bit_t, n>::make_from_memory(data_ptr, offset_bits);
-            constexpr const polynomial<bit_t, n> _x_shift_degree(1, generator_polynomial.degree());
-            const auto _input_shifted = (_x_shift_degree * _x).trimmed();
-            const auto dd = _input_shifted / generator_polynomial;
-            const auto encoded_parity_polynomial = dd.r; // ignoring division quotient, care only about residual
+        static void pack_codeword(const auto &data_bytes, const auto &encoded_parity_polynomial, auto &codeword) {
 
             // TODO: add proper schemes for configuring the encoded bits layout (scramble or not etc.)
 
-    #ifdef PACK_UNSCRAMBLED_DATA_FIRST
+#ifdef PACK_UNSCRAMBLED_DATA_FIRST
             // MSB...LSB: [parityN, ..., parity0, dataN, ..., data0]
             // MSB...LSB: [byteM, ..., byte0]
 
             // fill data bytes (easier decoding if data first)
 
             const auto data_memcpy_bytes = data_bits / 8;
-            std::memcpy(enc_frame.data_bytes, data_ptr, data_memcpy_bytes);
+            std::memcpy(codeword.data_bytes, data_bytes, data_memcpy_bytes);
 
             for(unsigned i=0; i<data_bits; i++) {
                 const auto global_byte_idx = i / 8;
                 const auto local_bit_idx = i % 8;
 
                 const bool data_bit_set = data_bytes[global_byte_idx] & (1U << local_bit_idx);
-                enc_frame.data_bytes[global_byte_idx] |= (data_bit_set << local_bit_idx);
+                codeword.data_bytes[global_byte_idx] |= (data_bit_set << local_bit_idx);
             }
 
             // fill parity bytes
@@ -245,9 +230,9 @@ namespace mr {
                 const auto global_enc_byte_idx = i / 8;
                 const auto local_enc_bit_idx = i % 8;
 
-                enc_frame.data_bytes[global_enc_byte_idx] |= (encoded_parity_polynomial[j] << local_enc_bit_idx);
+                codeword.data_bytes[global_enc_byte_idx] |= (encoded_parity_polynomial[j] << local_enc_bit_idx);
             }
-    #elif defined(PACK_UNSCRAMBLED_PARITY_FIRST)
+#elif defined(PACK_UNSCRAMBLED_PARITY_FIRST)
             // MSB...LSB: [dataN, ..., data0, parityN, ..., parity0]
             // MSB...LSB: [byteM, ..., byte0]
 
@@ -257,7 +242,7 @@ namespace mr {
                 const auto global_enc_byte_idx = i / 8;
                 const auto local_enc_bit_idx = i % 8;
 
-                enc_frame.data_bytes[global_enc_byte_idx] |= (encoded_parity_polynomial[i] << local_enc_bit_idx);
+                codeword.data_bytes[global_enc_byte_idx] |= (encoded_parity_polynomial[i] << local_enc_bit_idx);
             }
 
             // fill data bytes
@@ -270,13 +255,34 @@ namespace mr {
                 const auto local_data_bit_idx = j % 8;
 
                 const bool data_bit_set = data_bytes[global_data_byte_idx] & (1U << local_data_bit_idx);
-                enc_frame.data_bytes[global_enc_byte_idx] |= (data_bit_set << local_enc_bit_idx);
+                codeword.data_bytes[global_enc_byte_idx] |= (data_bit_set << local_enc_bit_idx);
             }
 
-    #else // PACK_SCRAMBLED
+#else // PACK_SCRAMBLED
             static_assert(false, "TODO");
-    #endif
-            return enc_frame;
+#endif
+        }
+
+        static std::optional<encoded_frame> encode_codeword(const void *data_ptr, size_t offset_bits = 0) {
+
+            // it processes bch_type::data_bits bits so make sure this amount is available after data
+
+            const auto data_bytes = static_cast<const uint8_t *>(data_ptr);
+
+            encoded_frame codeword;
+            std::memset(codeword.data_bytes, 0, n_bytes);
+
+            static_assert(generator_polynomial.degree() > 0, "");
+
+            const auto _x = polynomial<bit_t, n>::make_from_memory(data_ptr, offset_bits);
+            constexpr polynomial<bit_t, n> _x_shift_degree(1, generator_polynomial.degree());
+            const auto _input_shifted = (_x_shift_degree * _x).trimmed();
+            const auto dd = _input_shifted / generator_polynomial;
+            const auto encoded_parity_polynomial = dd.r; // ignoring division quotient, care only about residual
+
+            pack_codeword(data_bytes, encoded_parity_polynomial, codeword);
+
+            return codeword;
         }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -290,7 +296,7 @@ namespace mr {
 
         constexpr static const auto mask_last_byte = make_mask_last_byte();
 
-        static void decode_output(const encoded_frame &encoded, void *out) {
+        static void unpack_codeword(const encoded_frame &encoded, void *out) {
             // copy all the full bytes right away
 
             // TODO: maybe act depending on packing strategy
@@ -334,20 +340,127 @@ namespace mr {
         using syndrome_polynomials_type = std::array<syndrome_polynomial_type, 2*t>;
         using syndrome_elements_type = std::array<galois_field_element_type, 2*t>;
 
-        static int decode_codeword(encoded_frame &encoded, void *out) {
-            using codeword_poly_type = polynomial<bit_t, n-1>;
-            const auto v = codeword_poly_type::make_from_memory(encoded.data_bytes);
+        using codeword_poly_type = polynomial<bit_t, n-1>;
 
-    #ifdef DEBUG_VERBOSE
-            printf("decoding poly:\t\t%s\n", v.to_string().c_str());
-    #endif
+        // Berlekamp-Massey algorithm
 
-            syndrome_polynomials_type syndrome_polys;
-            syndrome_elements_type syndrome_elements;
+        static error_locator_polynomial_type make_error_locator_polynomial(const syndrome_elements_type &syndrome_elements) {
+            size_t L = 0,
+                   m = 1;
 
-            unsigned debug_errors_detected = 0;
-            unsigned errors_corrected = 0;
+            constexpr galois_field_element_type _gf_one(galois_field_type::poly_by_power(0), 0);
 
+            galois_field_element_type d, // init to 0
+                                      b(_gf_one); // init to 1
+
+            error_locator_polynomial_type C(_gf_one, 0), // init to 1
+                                          B = C; // init to 1
+
+            const auto &S = syndrome_elements; // for convenience
+            constexpr auto num_syndromes = 2*t;
+
+            for(size_t si=0; si<num_syndromes; si++) {
+
+                // skip odd iterations for binary GF2 field
+
+                if ((si & 1) != 0) {
+                    ++m;
+                    continue;
+                }
+
+                // calculate the discrepancy
+
+                d = {};
+                for(size_t l=0; l<=L; l++)
+                    d += C[l] * S[si-l];
+
+                if(d.poly().is_zero()) {
+
+                    // we're good, just move on to tne next iteration
+
+                    ++m;
+                    continue;
+                }
+
+                // update C
+
+                const auto d_b = d * b.inverse();
+                const error_locator_polynomial_type exponent(d_b, m);
+                const auto delta = exponent * B;
+
+                if (2*L <= si){
+                    B = C; // save for later
+
+                    C -= delta.trimmed();
+                    m = 1;
+
+                    b = d; // save for later
+                    L = si + 1 - L;
+
+                } else {
+                    C -= delta.trimmed();
+                    ++m;
+                }
+            }
+
+            return C;
+        }
+
+        static void locate_errors_chien_search(const error_locator_polynomial_type &error_locator_polynomial, codeword_poly_type &errors_mask, unsigned &errors_found) {
+            auto tmp_elp = error_locator_polynomial;
+
+            for(size_t i=0; i<n; i++) {
+                galois_field_element_type sum;
+
+                for(size_t j=0; j<error_locator_polynomial.num_coeffs; j++)
+                    sum += tmp_elp[j];
+
+                if(sum.poly().is_zero()) {
+                    const auto root = galois_field_type::at(i).inverse();
+                    const auto error_location = *root.exponent();
+
+#ifdef DEBUG_VERBOSE
+                    printf("found error locator polynomial root @ a^%3ld --> error location: a^%3d\n", i, error_location);
+#endif
+
+                    errors_mask[error_location] = true;
+                    ++errors_found;
+                }
+
+                for(size_t j=0; i<n-1 && j<error_locator_polynomial.num_coeffs; j++)
+                    tmp_elp[j] *= galois_field_type::at(j);
+            }
+        }
+
+        static void locate_errors_brute_force(const error_locator_polynomial_type &error_locator_polynomial, codeword_poly_type &errors_mask, unsigned &errors_found) {
+            for(size_t i=0; i<n; i++) {
+                // see which elements are roots by substitution
+
+                galois_field_element_type root_candidate(galois_field_type::at(i));
+
+                // substitute into elp
+
+                galois_field_element_type result;
+
+                // int j because of galois_field_element_type::operator ^
+                for(int j=0; j<static_cast<const signed &>(error_locator_polynomial.num_coeffs); j++)
+                    result += error_locator_polynomial[j] * (root_candidate ^ j);
+
+                if(result.poly().is_zero()) {
+                    const auto root = root_candidate.inverse();
+                    const auto error_location = *root.exponent();
+
+#ifdef DEBUG_VERBOSE
+                    printf("found error locator polynomial root @ a^%3ld --> error location: a^%3d\n", i, error_location);
+#endif
+
+                    errors_mask[error_location] = true;
+                    ++errors_found;
+                }
+            }
+        }
+
+        static void calculate_syndrome_polys(const codeword_poly_type &v, syndrome_polynomials_type &syndrome_polys, unsigned &check_errors_detected) {
             for (size_t c=0; c<2*t; c++) {
                 const auto &idx = syndrome_generator_index.global[c];
                 const auto &syndrome_gen_poly = minimal_polynomials.polynomials[idx];
@@ -359,12 +472,69 @@ namespace mr {
                 // unsafe copy trims tmp.r while copying to syndrome_polys[c]
                 polynomial_copy_unsafe(tmp.r, syndrome_polys[c]); // ignoring the quotient, care about remainder only
 
-                debug_errors_detected += !syndrome_polys[c].is_zero(); // nonzero syndrome indicate an error
+                check_errors_detected += !syndrome_polys[c].is_zero(); // nonzero syndrome indicate an error
             }
+        }
+
+        static void translate_syndromes_to_elements(const syndrome_polynomials_type &syndrome_polys, syndrome_elements_type &syndrome_elements) {
+            for (size_t i=0; i<2*t; i++) {
+
+                // S[i](x) --> S[i](a^i) == x --> a^i, i=1...2*t
+
+                const auto &syndrome_poly = syndrome_polys[i];
+                auto &syndrome_element = syndrome_elements[i];
+
+                const auto &x = galois_field_type::at(i+1);
+
+                for(int j=0; j<signed(m); j++) {
+                    if(syndrome_poly[j])
+                        syndrome_element += x^j; // gf element power operator
+                }
+
+#ifdef DEBUG_VERBOSE
+                if(syndrome_poly.is_zero())
+                    printf("syndrome[%li]: %s --> 0\n", i, syndrome_polys[i].to_string().c_str());
+                else
+                    printf("syndrome[%li]: %s --> a^%3d\n", i, syndrome_polys[i].to_string().c_str(), *syndrome_element.exponent());
+#endif
+            }
+        }
+
+        static void fix_codeword_errors(const codeword_poly_type &errors_mask, encoded_frame &encoded) {
+            for(size_t i=0; i<n; i++) {
+#if 0 // is if an optimization?
+                if(errors_mask[i]) {
+                    const auto global_byte_idx = i / 8;
+                    const auto local_bit_idx = i % 8;
+                    encoded.data_bytes[global_byte_idx] ^= (1U << local_bit_idx); // TODO: pass errors_mask to decode_output?
+                }
+#else // or going branchless is? I like this one more
+                const auto global_byte_idx = i / 8;
+                const auto local_bit_idx = i % 8;
+                encoded.data_bytes[global_byte_idx] ^= (errors_mask[i] << local_bit_idx); // TODO: pass errors_mask to decode_output?
+#endif
+            }
+        }
+
+        static int decode_codeword(encoded_frame &codeword, void *out) {
+
+            const auto v = codeword_poly_type::make_from_memory(codeword.data_bytes);
+
+    #ifdef DEBUG_VERBOSE
+            printf("decoding poly:\t\t%s\n", v.to_string().c_str());
+    #endif
+
+            syndrome_polynomials_type syndrome_polys;
+            syndrome_elements_type syndrome_elements;
+
+            unsigned check_errors_detected = 0;
+            unsigned errors_corrected = 0;
+
+            calculate_syndrome_polys(v, syndrome_polys, check_errors_detected);
 
             // no errors only if all syndromes are zero
 
-            if(debug_errors_detected) {
+            if(check_errors_detected) {
 
                 // correct errors or return error if not recoverable
 
@@ -372,96 +542,18 @@ namespace mr {
                 printf("decoding bit errors...\n");
     #endif
 
-                // evaluate syndrome polynomials with respective gf elements
+                // translate syndrome polynomials to the respective gf elements
 
-                for (size_t i=0; i<2*t; i++) {
-
-                    // S[i](x) --> S[i](a^i) == x --> a^i, i=1...2*t
-
-                    const auto &syndrome_poly = syndrome_polys[i];
-                    auto &syndrome_element = syndrome_elements[i];
-
-                    const auto &x = galois_field_type::at(i+1);
-
-                    for(int j=0; j<signed(m); j++) {
-                        if(syndrome_poly[j])
-                            syndrome_element += x^j; // gf element power operator
-                    }
-
-    #ifdef DEBUG_VERBOSE
-                    if(syndrome_poly.is_zero())
-                        printf("syndrome[%li]: %s --> 0\n", i, syndrome_polys[i].to_string().c_str());
-                    else
-                        printf("syndrome[%li]: %s --> a^%3d\n", i, syndrome_polys[i].to_string().c_str(), *syndrome_element.exponent());
-    #endif
-                }
+                translate_syndromes_to_elements(syndrome_polys, syndrome_elements);
 
                 // construct error locator polynomial
 
-                // Berlekamp-Massey algorithm
-
-                using elp_type = polynomial<galois_field_element_type, n-1>;
-
-                size_t L = 0,
-                       m = 1;
-                galois_field_element_type d,
-                                          b(galois_field_type::poly_by_power(0), 0); // 0
-                elp_type C(galois_field_element_type(galois_field_type::poly_by_power(0), 0), 0),
-                         B = C; // 1
-
-                auto &S = syndrome_elements;
-                const auto num_syndromes = 2*t;
-
-                for(size_t si=0; si<num_syndromes; si++) {
-
-                    // skip odd iterations for binary GF2 field
-
-                    if ((si & 1) != 0) {
-                        ++m;
-                        continue;
-                    }
-
-                    // calculate the discrepancy
-
-                    d = {};
-                    for(size_t l=0; l<=L; l++)
-                        d += C[l] * S[si-l];
-
-                    if(d.poly().is_zero()) {
-
-                        // we're good, just move on to tne next iteration
-
-                        ++m;
-                        continue;
-                    }
-
-                    // update C
-
-                    const auto d_b = d * b.inverse();
-                    const auto exponent = elp_type(d_b, m);
-                    const auto delta = exponent * B;
-
-                    if (2*L <= si){
-                        B = C; // save for later
-
-                        C -= delta.trimmed();
-                        m = 1;
-
-                        b = d; // save for later
-                        L = si + 1 - L;
-
-                    } else {
-                        C -= delta.trimmed();
-                        ++m;
-                    }
-                }
-                const auto &error_locator_polynomial = C;
+                const auto error_locator_polynomial = make_error_locator_polynomial(syndrome_elements);
 
                 const auto num_errors_found = error_locator_polynomial.degree();
-
                 assert(num_errors_found);
 
-                // roots of elp define the nonzero error location pattern coeffs
+                // roots of error locator polynomial define the nonzero error location pattern coeffs
 
                 codeword_poly_type errors_mask;
 
@@ -469,84 +561,32 @@ namespace mr {
 
                 // Chien's Search
 
-                auto tmp_elp = error_locator_polynomial;
-
-                for(size_t i=0; i<n; i++) {
-                    galois_field_element_type sum;
-
-                    for(size_t j=0; j<error_locator_polynomial.num_coeffs; j++)
-                        sum += tmp_elp[j];
-
-                    if(sum.poly().is_zero()) {
-                        const auto root = galois_field_type::at(i).inverse();
-                        const auto error_location = *root.exponent();
-
-    #ifdef DEBUG_VERBOSE
-                        printf("found error locator polynomial root @ a^%3ld --> error location: a^%3d\n", i, error_location);
-    #endif
-
-                        errors_mask[error_location] = true;
-                        ++errors_corrected;
-                    }
-
-                    for(size_t j=0; i<n-1 && j<error_locator_polynomial.num_coeffs; j++)
-                        tmp_elp[j] *= galois_field_type::at(j);
-                }
+                locate_errors_chien_search(error_locator_polynomial, errors_mask, errors_corrected);
     #else
 
                 // brute force
 
-                for(size_t i=0; i<n; i++) {
-                    // see which elements are roots by substitution
-
-                    galois_field_element_type root_candidate(galois_field_type::at(i));
-
-                    // substitute into elp
-
-                    galois_field_element_type result;
-
-                    // int j because of galois_field_element_type::operator ^
-                    for(int j=0; j<static_cast<const signed &>(error_locator_polynomial.num_coeffs); j++)
-                        result += error_locator_polynomial[j] * (root_candidate ^ j);
-
-                    if(result.poly().is_zero()) {
-                        const auto root = root_candidate.inverse();
-                        const auto error_location = *root.exponent();
-
-    #ifdef DEBUG_VERBOSE
-                        printf("found error locator polynomial root @ a^%3ld --> error location: a^%3d\n", i, error_location);
-    #endif
-
-                        errors_mask[error_location] = true;
-                        ++errors_corrected;
-                    }
-                }
+                locate_errors_brute_force(error_locator_polynomial, errors_mask, errors_corrected);
     #endif
 
                 // correct error bits
 
-    #ifdef DEBUG_VERBOSE
+#ifdef DEBUG_VERBOSE
                 printf("corrupted (%d errs):\t%s\nerror mask:\t\t%s\ncorrected:\t\t%s\n",
-                    num_errors_found,
-                    v.to_string().c_str(),
-                    errors_mask.to_string().c_str(),
-                    (v + errors_mask).to_string().c_str()
+                   num_errors_found,
+                   v.to_string().c_str(),
+                   errors_mask.to_string().c_str(),
+                   (v + errors_mask).to_string().c_str()
                 );
-    #endif
+#endif
 
-                for(size_t i=0; i<n; i++) {
-                    if(errors_mask[i]) {
-                        const auto global_byte_idx = i / 8;
-                        const auto local_bit_idx = i % 8;
-                        encoded.data_bytes[global_byte_idx] ^= (1U << local_bit_idx); // TODO: pass errors_mask to decode_output?
-                    }
-                }
+                fix_codeword_errors(errors_mask, codeword);
 
                 if(errors_corrected != num_errors_found)
                     return -num_errors_found;
             }
 
-            decode_output(encoded, /*error_locator_polynomial, */out); // TODO: include error locator
+            unpack_codeword(codeword, /*error_locator_polynomial, */out); // TODO: include error locator
 
             return errors_corrected; // no error or number of corrected errors
         }

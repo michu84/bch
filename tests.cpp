@@ -102,8 +102,8 @@ void test_m7()
 
 template<unsigned m, unsigned t>
 void test_all() {
-    constexpr const mr::gen_seq<m> m_seq;
-    constexpr const mr::gen_seq<t> t_seq;
+    constexpr mr::gen_seq<m> m_seq;
+    constexpr mr::gen_seq<t> t_seq;
 
     // TODO: need an automatic iteration over all m and t with finding primitive poly for gf in each separately
     assert(false);
