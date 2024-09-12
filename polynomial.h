@@ -90,9 +90,49 @@ namespace mr {
     struct polynomial;
 
     template<typename T, unsigned from_order, unsigned to_order>
-    constexpr void polynomial_copy(const polynomial<T,from_order> &, polynomial<T,to_order> &);
+    constexpr void polynomial_copy_unsafe(const polynomial<T,from_order> &from, polynomial<T,to_order> &to)
+    {
+        if constexpr (from_order < to_order) {
+            constexpr auto copied = from_order + 1; // +1 for coeff x^0
+            std::copy(from.coeffs, from.coeffs + copied, to.coeffs);
+            std::fill_n(to.coeffs + copied, to_order - copied + 1, T{});
+        } else {
+            constexpr auto copied = to_order + 1; // +1 for coeff x^0
+            std::copy(from.coeffs, from.coeffs + copied, to.coeffs);
+        }
 
-    // polynomial of type P(x) = C0*x^0 + C1*x^1 + C2*x^2 ... Cn*x^n
+    }
+
+    template<typename T, unsigned from_order, unsigned to_order>
+    constexpr void polynomial_copy(const polynomial<T,from_order> &from, polynomial<T,to_order> &to)
+    {
+        static_assert(from_order <= to_order, "copy destination polynomial order not enough to contain all potential source polynomial data!");
+
+        polynomial_copy_unsafe(from ,to);
+    }
+
+    template<typename T, unsigned from_order, unsigned to_order>
+    constexpr void polynomial_move_unsafe(const polynomial<T,from_order> &from, polynomial<T,to_order> &to)
+    {
+        if constexpr (from_order < to_order) {
+            constexpr auto moved = from_order + 1; // +1 for coeff x^0
+            std::move(from.coeffs, from.coeffs + moved, to.coeffs);
+            std::fill_n(to.coeffs + moved, to_order - moved + 1, T{});
+        } else {
+            constexpr auto moved = to_order + 1; // +1 for coeff x^0
+            std::move(from.coeffs, from.coeffs + moved, to.coeffs);
+        }
+    }
+
+    template<typename T, unsigned from_order, unsigned to_order>
+    constexpr void polynomial_move(const polynomial<T,from_order> &from, polynomial<T,to_order> &to)
+    {
+        static_assert(from_order <= to_order, "copy destination polynomial order not enough to contain all potential source polynomial data!");
+
+        polynomial_move_unsafe(from ,to);
+    }
+
+    // polynomial of type P(x) = C0*x^0 + C1*x^1 + C2*x^2 + ... + Cn*x^n
 
     template<typename C, unsigned MaxOrder>
     struct polynomial {
@@ -130,8 +170,36 @@ namespace mr {
             polynomial_copy(other, *this);
         }
 
+        template<unsigned other_max_order>
+        constexpr polynomial(polynomial<coeff_type, other_max_order> &&other) {
+            static_assert(other_max_order <= max_order, "detected potential polynomial overflow in copy ctor, a potential data loss!");
+            // assert(other_max_order <= this->degree());
+            polynomial_move(other, *this);
+        }
+
         constexpr ~polynomial() {}
 
+        constexpr polynomial(const polynomial &other)
+        {
+            polynomial_copy(other, *this);
+        }
+
+        constexpr polynomial(polynomial &&other)
+        {
+            polynomial_move(other, *this);
+        }
+
+        constexpr polynomial& operator = (const polynomial &other)
+        {
+            polynomial_copy(other, *this);
+            return *this;
+        }
+
+        constexpr polynomial& operator = (polynomial &&other)
+        {
+            polynomial_move(other, *this);
+            return *this;
+        }
 
         constexpr static polynomial make_from_memory(const void *ptr, size_t offset_bits = 0, size_t start_power = 0 ) {
             polynomial poly;
@@ -345,36 +413,6 @@ namespace mr {
             return to_string();
         }
     };
-
-    template<typename T, unsigned from_order, unsigned to_order>
-    constexpr void polynomial_copy_unsafe(const polynomial<T,from_order> &from, polynomial<T,to_order> &to)
-    {
-        const auto limit = std::min(from_order, to_order);
-        std::copy(from.coeffs, from.coeffs + limit + 1, to.coeffs);
-    }
-
-    template<typename T, unsigned from_order, unsigned to_order>
-    constexpr void polynomial_copy(const polynomial<T,from_order> &from, polynomial<T,to_order> &to)
-    {
-        static_assert(from_order <= to_order, "copy destination polynomial order not enough to contain all potential source polynomial data!");
-
-        polynomial_copy_unsafe(from ,to);
-    }
-
-    template<typename T, unsigned from_order, unsigned to_order>
-    constexpr void polynomial_move_unsafe(const polynomial<T,from_order> &from, polynomial<T,to_order> &to)
-    {
-        const auto limit = std::min(from_order, to_order);
-        std::move(from.coeffs, from.coeffs + limit + 1, to.coeffs);
-    }
-
-    template<typename T, unsigned from_order, unsigned to_order>
-    constexpr void polynomial_move(const polynomial<T,from_order> &from, polynomial<T,to_order> &to)
-    {
-        static_assert(from_order <= to_order, "copy destination polynomial order not enough to contain all potential source polynomial data!");
-
-        polynomial_move_unsafe(from ,to);
-    }
 
     template<typename T, unsigned max_order>
     std::ostream& operator << (std::ostream &s, const polynomial<T,max_order> &p)
