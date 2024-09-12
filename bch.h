@@ -148,15 +148,15 @@ namespace mr {
             return n;
         }
 
-        constexpr static const cyclotomic_cosets_type cyclotomic_cosets = make_cyclotomic_cosets();
-        constexpr static const minimal_polynomials_type minimal_polynomials = make_minimal_polynomials();
-        constexpr static const generator_polynomial_type generator_polynomial = make_generator_polynomial();
+        constexpr static cyclotomic_cosets_type cyclotomic_cosets = make_cyclotomic_cosets();
+        constexpr static minimal_polynomials_type minimal_polynomials = make_minimal_polynomials();
+        constexpr static generator_polynomial_type generator_polynomial = make_generator_polynomial();
 
-        constexpr static const auto data_bits = data_size_bits();
-        constexpr static const auto parity_bits = parity_size_bits();
-        constexpr static const auto max_ecc_bits = m * t;
+        constexpr static auto data_bits = data_size_bits();
+        constexpr static auto parity_bits = parity_size_bits();
+        constexpr static auto max_ecc_bits = m * t;
 
-        constexpr static const auto k = data_bits; // for convenience
+        constexpr static auto k = data_bits; // for convenience
 
         static_assert(parity_bits <= max_ecc_bits, "effective number of configured parity bits exceed the maximum limit!");
 
@@ -294,7 +294,7 @@ namespace mr {
             return mask;
         }
 
-        constexpr static const auto mask_last_byte = make_mask_last_byte();
+        constexpr static auto mask_last_byte = make_mask_last_byte();
 
         static void unpack_codeword(const encoded_frame &encoded, void *out) {
             // copy all the full bytes right away

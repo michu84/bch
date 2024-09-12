@@ -72,15 +72,15 @@ namespace mr {
         {
             template<unsigned J, unsigned...Js>
             struct _ {
-                constexpr static const unsigned value = _<Js...>::value;
+                constexpr static unsigned value = _<Js...>::value;
             };
 
             template<unsigned J>
             struct _<J> {
-                constexpr static const unsigned value = J;
+                constexpr static unsigned value = J;
             };
 
-            constexpr static const unsigned value = _<Is...>::value;
+            constexpr static unsigned value = _<Is...>::value;
         };
 
     }
