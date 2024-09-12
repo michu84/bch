@@ -502,13 +502,13 @@ namespace mr {
 
         static void fix_codeword_errors(const codeword_poly_type &errors_mask, encoded_frame &encoded) {
             for(size_t i=0; i<n; i++) {
-#if 0 // is if an optimization?
+#if 0 // is using 'if' an optimization here?
                 if(errors_mask[i]) {
                     const auto global_byte_idx = i / 8;
                     const auto local_bit_idx = i % 8;
                     encoded.data_bytes[global_byte_idx] ^= (1U << local_bit_idx); // TODO: pass errors_mask to decode_output?
                 }
-#else // or going branchless is? I like this one more
+#else // or going branchless is? I like this one more anyway
                 const auto global_byte_idx = i / 8;
                 const auto local_bit_idx = i % 8;
                 encoded.data_bytes[global_byte_idx] ^= (errors_mask[i] << local_bit_idx); // TODO: pass errors_mask to decode_output?
