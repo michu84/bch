@@ -56,7 +56,7 @@ namespace mr {
 
         constexpr static cyclotomic_cosets_type make_cyclotomic_cosets() {
             cyclotomic_cosets_type cyclotomic;
-            bool skip_redundant_mask[n] = {{0}}; // skip redundant alpha powers
+            bool skip_redundant_mask[n] = {}; // skip redundant alpha powers
 
             for(unsigned i=1, ci=0; i<2*t; i+=2) { // skip 0 as it's not effective anyway, step=2 since even powers still are ineffective
                 auto &alpha_power_cosets = cyclotomic.cosets[ci];

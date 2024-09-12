@@ -48,7 +48,7 @@ namespace mr {
         }
 
         struct element {
-            std::optional<element_power_type> powr_rep; // aka simply the element alpha exponent, always going from 0...(2^m)-1
+            std::optional<element_power_type> powr_rep = {}; // aka simply the element alpha exponent, always going from 0...(2^m)-1
             element_polynomial_type  poly_rep = {}; // order of polynomials depends on generating the primitive_polynomial
 
             constexpr std::optional<element_power_type> exponent() const { return powr_rep; }

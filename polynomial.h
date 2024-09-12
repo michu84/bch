@@ -327,7 +327,7 @@ namespace mr {
 
         /*constexpr*/ std::string to_string(bool trim_leading_zeros = false) const
         {
-            char bits[num_coeffs+1] = {{0}};
+            char bits[num_coeffs+1] = {};
             const auto s = trim_leading_zeros ? degree()+1 : num_coeffs;
             for(size_t i=0; i<s; i++)
                 bits[i] = 48 + coeffs[s-1 - i];
