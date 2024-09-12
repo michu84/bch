@@ -76,6 +76,12 @@ namespace mr {
                 return *this;
             }
 
+            constexpr element& operator = (element &&other) {
+                powr_rep = std::move(other.powr_rep);
+                poly_rep = std::move(other.poly_rep);
+                return *this;
+            }
+
             constexpr operator bool() const {
                 return powr_rep.has_value()
                        && poly_rep != element_polynomial_type(0, 0);
