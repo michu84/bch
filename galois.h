@@ -56,9 +56,11 @@ namespace mr {
 
             constexpr element() {}
 
-            constexpr explicit element(const element_polynomial_type &poly_rep_, const std::optional<element_power_type> &powr_rep_)
+            constexpr element(const element_polynomial_type &poly_rep_, const std::optional<element_power_type> &powr_rep_)
                 : powr_rep(powr_rep_)
                 , poly_rep(poly_rep_) {}
+
+            constexpr ~element() {}
 
             constexpr operator bool() const {
                 return powr_rep.has_value()

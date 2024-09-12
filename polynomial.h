@@ -122,6 +122,8 @@ namespace mr {
             polynomial_copy(other, *this);
         }
 
+        constexpr ~polynomial() {}
+
         constexpr static polynomial make_from_memory(const void *ptr, size_t offset_bits = 0, size_t start_power = 0 ) {
             polynomial poly;
             const auto data_bytes = static_cast<const uint8_t *>(ptr);
