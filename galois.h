@@ -203,7 +203,7 @@ namespace mr {
             return _elements;
         }
 
-        constexpr static const elements_type elements = make_elements();
+        constexpr static elements_type elements = make_elements();
 
         constexpr static const element& at(const element_power_type &power_index) {
             return elements[power_index + 1]; // +1 for zero first element
