@@ -248,10 +248,7 @@ namespace mr {
         }
 
         constexpr bool operator == (const polynomial &other) const {
-            if(degree() != other.degree())
-                return false;
-
-            for(size_t i=0; i<degree()+1; i++)
+            for(size_t i=0; i<num_coeffs; i++)
                 if(coeffs[i] != other[i])
                     return false;
 
