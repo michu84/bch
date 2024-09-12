@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <string.h>
 #include <cstdint>
+#include <algorithm>
 
 using bit_t = bool;
 
@@ -105,8 +106,15 @@ namespace mr {
 
         coeff_type coeffs[num_coeffs] = {};
 
-        constexpr polynomial()
-            : coeffs({}) {}
+        constexpr polynomial() {}
+
+        constexpr polynomial(const coeff_type &v) {
+            coeffs[0] = v;
+        }
+
+        constexpr polynomial(coeff_type &&v) {
+            coeffs[0] = std::move(v);
+        }
 
         template<typename...Args>
         constexpr polynomial(const coeff_type &coeff_x, const unsigned &x_power, Args &&...args)
@@ -123,6 +131,7 @@ namespace mr {
         }
 
         constexpr ~polynomial() {}
+
 
         constexpr static polynomial make_from_memory(const void *ptr, size_t offset_bits = 0, size_t start_power = 0 ) {
             polynomial poly;
@@ -143,10 +152,9 @@ namespace mr {
             return poly;
         }
 
-        constexpr unsigned degree() const
-        {
+        constexpr unsigned degree() const {
 #if 0
-            for(unsigned i=max_order; i>=0; i--)
+            for(unsigned i=num_coeffs-1; i>=0; i--)
                 if(static_cast<bool>(coeffs[i])) // either bool or has operator bool() const
                     return i;
             return 0;
@@ -182,13 +190,11 @@ namespace mr {
             return true;
         }
 
-        constexpr const coeff_type& operator [] (const size_t &idx) const
-        {
+        constexpr const coeff_type& operator [] (const size_t &idx) const {
             return coeffs[idx];
         }
 
-        constexpr coeff_type& operator [] (const size_t &idx)
-        {
+        constexpr coeff_type& operator [] (const size_t &idx) {
             return coeffs[idx];
         }
 
@@ -344,8 +350,7 @@ namespace mr {
     constexpr void polynomial_copy_unsafe(const polynomial<T,from_order> &from, polynomial<T,to_order> &to)
     {
         const auto limit = std::min(from_order, to_order);
-        for(unsigned i=0; i<limit+1; i++)
-            to[i] = from[i];
+        std::copy(from.coeffs, from.coeffs + limit + 1, to.coeffs);
     }
 
     template<typename T, unsigned from_order, unsigned to_order>
@@ -354,6 +359,21 @@ namespace mr {
         static_assert(from_order <= to_order, "copy destination polynomial order not enough to contain all potential source polynomial data!");
 
         polynomial_copy_unsafe(from ,to);
+    }
+
+    template<typename T, unsigned from_order, unsigned to_order>
+    constexpr void polynomial_move_unsafe(const polynomial<T,from_order> &from, polynomial<T,to_order> &to)
+    {
+        const auto limit = std::min(from_order, to_order);
+        std::move(from.coeffs, from.coeffs + limit + 1, to.coeffs);
+    }
+
+    template<typename T, unsigned from_order, unsigned to_order>
+    constexpr void polynomial_move(const polynomial<T,from_order> &from, polynomial<T,to_order> &to)
+    {
+        static_assert(from_order <= to_order, "copy destination polynomial order not enough to contain all potential source polynomial data!");
+
+        polynomial_move_unsafe(from ,to);
     }
 
     template<typename T, unsigned max_order>

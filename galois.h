@@ -52,7 +52,7 @@ namespace mr {
             element_polynomial_type  poly_rep = {}; // order of polynomials depends on generating the primitive_polynomial
 
             constexpr std::optional<element_power_type> exponent() const { return powr_rep; }
-            constexpr element_polynomial_type poly()      const { return poly_rep; }
+            constexpr element_polynomial_type poly() const { return poly_rep; }
 
             constexpr element() {}
 
@@ -60,7 +60,21 @@ namespace mr {
                 : powr_rep(powr_rep_)
                 , poly_rep(poly_rep_) {}
 
+            constexpr element(const element &other)
+                : powr_rep(other.powr_rep)
+                , poly_rep(other.poly_rep) {}
+
+            constexpr element(element &&other)
+                : powr_rep(std::move(other.powr_rep))
+                , poly_rep(std::move(other.poly_rep)) {}
+
             constexpr ~element() {}
+
+            constexpr element& operator = (const element &other) {
+                powr_rep = other.powr_rep;
+                poly_rep = other.poly_rep;
+                return *this;
+            }
 
             constexpr operator bool() const {
                 return powr_rep.has_value()
