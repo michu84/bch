@@ -28,14 +28,16 @@ namespace mr {
 
         // 2. polynomial representation is a unique polynomial in GF(2) for every alpha^i. Useful in element addition.
 
-        constexpr static element_polynomial_type poly_by_power(const element_power_type &powr)
+        constexpr static const element_polynomial_type& poly_by_power(const element_power_type &powr)
         {
             // TODO: check if powr is available
             assert(powr < n);
             return at(powr).poly();
         }
 
-        constexpr static std::optional<element_power_type> power_by_poly(const element_polynomial_type &poly)
+        constexpr static std::optional<element_power_type> __null_powr = {};
+
+        constexpr static const std::optional<element_power_type>& power_by_poly(const element_polynomial_type &poly)
         {
             // may return no value for zero polynomial (result of arithmetic)
 
@@ -44,15 +46,16 @@ namespace mr {
             for(const auto &element : elements)
                 if(element.poly() == poly)
                     return element.exponent();
-            return {};
+
+            return __null_powr;
         }
 
         struct element {
             std::optional<element_power_type> powr_rep = {}; // aka simply the element alpha exponent, always going from 0...(2^m)-1
-            element_polynomial_type  poly_rep = {}; // order of polynomials depends on generating the primitive_polynomial
+            element_polynomial_type poly_rep = {}; // order of polynomials depends on generating the primitive_polynomial
 
-            constexpr std::optional<element_power_type> exponent() const { return powr_rep; }
-            constexpr element_polynomial_type poly() const { return poly_rep; }
+            constexpr const std::optional<element_power_type>& exponent() const { return powr_rep; }
+            constexpr const element_polynomial_type& poly() const { return poly_rep; }
 
             constexpr element() {}
 
@@ -96,7 +99,7 @@ namespace mr {
             constexpr element operator + (const element &other) const
             {
                 const auto new_poly_rep = poly_rep + other.poly_rep; // simply add the polynomial coefficients, it'll automatically reduce itself with modulo2 arithmetic
-                const auto new_powr_rep = binary_galois_field::power_by_poly(new_poly_rep);
+                const auto &new_powr_rep = binary_galois_field::power_by_poly(new_poly_rep);
                 return element(new_poly_rep, new_powr_rep);
             }
 
@@ -108,7 +111,7 @@ namespace mr {
             constexpr element operator - (const element &other) const
             {
                 const auto new_poly_rep = poly_rep - other.poly_rep; // simply add (it's not different from subtracting) the polynomial coefficients, it'll automatically reduce itself with modulo2 arithmetic
-                const auto new_powr_rep = binary_galois_field::power_by_poly(new_poly_rep);
+                const auto &new_powr_rep = binary_galois_field::power_by_poly(new_poly_rep);
                 return element(new_poly_rep, new_powr_rep);
             }
 
@@ -124,7 +127,7 @@ namespace mr {
                     return binary_galois_field::elements[0];
 
                 const auto new_powr_rep = (powr_rep.value() + other.powr_rep.value()) % n; // add the powers (shift the element) and modulo n to wrap around the cyclic stuff
-                const auto new_poly_rep = binary_galois_field::poly_by_power(new_powr_rep);
+                const auto &new_poly_rep = binary_galois_field::poly_by_power(new_powr_rep);
                 return element(new_poly_rep, new_powr_rep);
             }
 
@@ -148,7 +151,7 @@ namespace mr {
                 const auto tmp_pow = negative_pow ? -_pow : _pow;
 
                 const auto new_powr_rep = (powr_rep.value() * tmp_pow) % n; // multiply the powers (shift the element) and modulo n to wrap around the cyclic stuff
-                const auto new_poly_rep = binary_galois_field::poly_by_power(new_powr_rep);
+                const auto &new_poly_rep = binary_galois_field::poly_by_power(new_powr_rep);
                 const auto out = element(new_poly_rep, new_powr_rep);
 
                 return negative_pow ? out.inverse() : out;
@@ -164,7 +167,7 @@ namespace mr {
 
                 const auto e = *exponent();
                 const auto new_powr_rep = (n - e) % n;
-                const auto new_poly_rep = binary_galois_field::poly_by_power(new_powr_rep);
+                const auto &new_poly_rep = binary_galois_field::poly_by_power(new_powr_rep);
                 return element(new_poly_rep, new_powr_rep);
             }
         };
@@ -190,7 +193,7 @@ namespace mr {
             _elements[1] = element(_1_poly, 0);
 
             for(auto i=2; i<n+2; i++) {
-                const element_polynomial_type _prev = _elements[i-1].poly();
+                const element_polynomial_type &_prev = _elements[i-1].poly();
                 const auto mul_result = _prev * _x_poly;
 
                 const element_polynomial_type _next =

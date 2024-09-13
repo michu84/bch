@@ -89,44 +89,46 @@ namespace mr {
     template<typename C, unsigned max_order>
     struct polynomial;
 
-    template<typename T, unsigned from_order, unsigned to_order>
-    constexpr void polynomial_copy_unsafe(const polynomial<T,from_order> &from, polynomial<T,to_order> &to)
+    template<typename T, unsigned from_max_order, unsigned to_max_order>
+    constexpr void polynomial_copy_unsafe(const polynomial<T,from_max_order> &from, polynomial<T,to_max_order> &to)
     {
-        if constexpr (from_order < to_order) {
-            constexpr auto copied = from_order + 1; // +1 for coeff x^0
+        if constexpr (from_max_order < to_max_order) {
+            constexpr auto copied = from_max_order + 1; // +1 for coeff x^0
             std::copy(from.coeffs, from.coeffs + copied, to.coeffs);
-            std::fill_n(to.coeffs + copied, to_order - copied + 1, T{});
-        } else {
-            constexpr auto copied = to_order + 1; // +1 for coeff x^0
+            std::fill_n(to.coeffs + copied, to_max_order - copied + 1, T{});
+        } else { // from_order >= to_max_order
+            // static_assert(from_max_order == to_max_order, "fixme"); // we do not want lossy copy
+            constexpr auto copied = to_max_order + 1; // +1 for coeff x^0
             std::copy(from.coeffs, from.coeffs + copied, to.coeffs);
         }
     }
 
-    template<typename T, unsigned from_order, unsigned to_order>
-    constexpr void polynomial_copy(const polynomial<T,from_order> &from, polynomial<T,to_order> &to)
+    template<typename T, unsigned from_max_order, unsigned to_max_order>
+    constexpr void polynomial_copy(const polynomial<T,from_max_order> &from, polynomial<T,to_max_order> &to)
     {
-        static_assert(from_order <= to_order, "copy destination polynomial order not enough to contain all potential source polynomial data!");
+        static_assert(from_max_order <= to_max_order, "copy destination polynomial order not enough to contain all potential source polynomial data!");
 
         polynomial_copy_unsafe(from ,to);
     }
 
-    template<typename T, unsigned from_order, unsigned to_order>
-    constexpr void polynomial_move_unsafe(const polynomial<T,from_order> &from, polynomial<T,to_order> &to)
-    {
-        if constexpr (from_order < to_order) {
-            constexpr auto moved = from_order + 1; // +1 for coeff x^0
+    template<typename T, unsigned from_max_order, unsigned to_max_order>
+    constexpr void polynomial_move_unsafe(const polynomial<T,from_max_order> &from, polynomial<T,to_max_order> &to)
+    {        
+        if constexpr (from_max_order < to_max_order) {
+            constexpr auto moved = from_max_order + 1; // +1 for coeff x^0
             std::move(from.coeffs, from.coeffs + moved, to.coeffs);
-            std::fill_n(to.coeffs + moved, to_order - moved + 1, T{});
-        } else {
-            constexpr auto moved = to_order + 1; // +1 for coeff x^0
+            std::fill_n(to.coeffs + moved, to_max_order - moved + 1, T{});
+        } else { // from_order >= to_max_order
+            // static_assert(from_max_order == to_max_order, "fixme"); // we do not want lossy copy
+            constexpr auto moved = to_max_order + 1; // +1 for coeff x^0
             std::move(from.coeffs, from.coeffs + moved, to.coeffs);
         }
     }
 
-    template<typename T, unsigned from_order, unsigned to_order>
-    constexpr void polynomial_move(const polynomial<T,from_order> &from, polynomial<T,to_order> &to)
+    template<typename T, unsigned from_max_order, unsigned to_max_order>
+    constexpr void polynomial_move(const polynomial<T,from_max_order> &from, polynomial<T,to_max_order> &to)
     {
-        static_assert(from_order <= to_order, "copy destination polynomial order not enough to contain all potential source polynomial data!");
+        static_assert(from_max_order <= to_max_order, "copy destination polynomial order not enough to contain all potential source polynomial data!");
 
         polynomial_move_unsafe(from ,to);
     }
@@ -267,7 +269,7 @@ namespace mr {
             // add coeffs
 
             polynomial out;
-            const auto limit = std::max(degree(), other.degree());
+            const auto limit = std::max(degree(), other.degree()); // TODO: get rid of degree() calls?
 
             for(size_t i=0; i<limit+1; i++) {
                 out[i] = poly_coeff_add( // if coeffs are bool, it evaluates as modulo2
@@ -289,7 +291,7 @@ namespace mr {
             // subtract coeffs
 
             polynomial out;
-            const auto limit = std::max(degree(), other.degree());
+            const auto limit = std::max(degree(), other.degree()); // TODO: get rid of degree() calls?
 
             for(size_t i=0; i<limit+1; i++) {
                 out[i] = poly_coeff_sub( // if coeffs are bool, it evaluates as modulo2
