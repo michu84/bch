@@ -436,7 +436,7 @@ namespace mr {
             for(size_t i=0; i<n; i++) {
                 // see which elements are roots by substitution
 
-                galois_field_element_type root_candidate(galois_field_type::at(i));
+                const auto root_candidate = galois_field_type::at(i);
 
                 // substitute into elp
 
@@ -447,8 +447,7 @@ namespace mr {
                     result += error_locator_polynomial[j] * (root_candidate ^ j);
 
                 if(result.poly().is_zero()) {
-                    const auto root = root_candidate.inverse();
-                    const auto error_location = *root.exponent();
+                    const auto error_location = *root_candidate.inverse().exponent();
 
 #ifdef DEBUG_VERBOSE
                     printf("found error locator polynomial root @ a^%3ld --> error location: a^%3d\n", i, error_location);
