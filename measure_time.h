@@ -8,22 +8,35 @@ namespace mr {
 
     using namespace std::chrono_literals;
 
+    template<typename ResolutionType = std::chrono::nanoseconds,
+             typename ClockType = std::chrono::high_resolution_clock>
     struct measure_time {
-        static auto start() {
-            return std::chrono::high_resolution_clock::now();
-        }
+        using resolution_type = ResolutionType;
+        using clock_type = ClockType;
+        using result_value_type = double;
 
-        template<class result_t = std::chrono::milliseconds,
-                 class clock_t = std::chrono::steady_clock,
-                 class duration_t = std::chrono::milliseconds>
-        static auto since(std::chrono::time_point<clock_t, duration_t> const &start) {
-            return std::chrono::duration_cast<result_t>(clock_t::now() - start);
+        static auto start() {
+            return clock_type::now();
         }
 
         static auto end(const auto &start) {
-            return since<std::chrono::microseconds,
-                         std::chrono::high_resolution_clock,
-                         std::chrono::duration<double>>(start);
+            return clock_type::now() - start;
+        }
+
+        static auto seconds(const auto &elapsed) {
+            return std::chrono::duration<result_value_type>(elapsed).count();
+        }
+
+        static auto milliseconds(const auto &elapsed) {
+            return std::chrono::duration<result_value_type, std::milli>(elapsed).count();
+        }
+
+        static auto microseconds(const auto &elapsed) {
+            return std::chrono::duration<result_value_type, std::micro>(elapsed).count();
+        }
+
+        static auto nanoseconds(const auto &elapsed) {
+            return std::chrono::duration<result_value_type, std::nano>(elapsed).count();
         }
 
         template<typename F>
@@ -38,9 +51,9 @@ namespace mr {
         template<typename F>
         static void print(const auto &elapsed) {
             std::cout << "execution took "
-                      << elapsed.count() << " us"
+                      << measure_time::microseconds(elapsed) << " us"
                       << " ("
-                      << (elapsed.count() / 1000000.0) << " s)"
+                      << measure_time::seconds(elapsed) << " s)"
                       << std::endl;
         }
 
@@ -49,11 +62,11 @@ namespace mr {
         };
 
         struct print_none {
-            void operator() (const std::string &) const {};
+            constexpr void operator() (const std::string &) const {};
         };
 
         template<typename F, typename Printer = print_none>
-        auto operator() (F &&f, const std::string &name = {}) const {
+        constexpr auto operator() (F &&f, const std::string &name = {}) const {
             const auto result = execute(std::forward<F>(f));
 
             Printer{}

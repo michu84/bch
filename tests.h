@@ -250,12 +250,14 @@ struct bch_tester<mr::bch<m, t, poly...>> {
     using print_procedure_type = print_bch_type<m, t, poly...>;
 
     void operator() (auto repeats) const {
-        const auto started = mr::measure_time::start();
+        using measurement_type = mr::measure_time<>;
+
+        const auto started = measurement_type::start();
 
         test_procedure_type{}
         (t, repeats);
 
-        const auto elapsed = mr::measure_time::end(started);
+        const auto elapsed = measurement_type::end(started);
 
         std::stringstream bch_type_ss;
 
@@ -265,8 +267,8 @@ struct bch_tester<mr::bch<m, t, poly...>> {
         printf("%s %d test iterations (encode -> add errors -> decode) took %f [s] (avg: %f [ms])\n\n",
                bch_type_ss.str().c_str(),
                repeats,
-               elapsed.count() / 1000000.0,
-               elapsed.count() / double(repeats) / 1000);
+               measurement_type::seconds(elapsed),
+               measurement_type::milliseconds(elapsed) / repeats);
     }
 };
 
