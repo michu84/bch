@@ -274,8 +274,7 @@ namespace mr {
 
             const auto data_bytes = static_cast<const uint8_t *>(data_ptr);
 
-            encoded_frame codeword;
-            std::memset(codeword.data_bytes, 0, n_bytes);
+            encoded_frame codeword = {};
 
             static_assert(generator_polynomial.degree() > 0, "");
 
