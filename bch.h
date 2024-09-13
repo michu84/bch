@@ -417,11 +417,11 @@ namespace mr {
             for(size_t i=0; i<n; i++) {
                 galois_field_element_type sum;
 
-                for(size_t j=0; j<error_locator_polynomial.num_coeffs; j++)
+                for(size_t j=0; j<t+1; j++)
                     sum += tmp_elp[j];
 
                 if(sum.poly().is_zero()) {
-                    const auto root = galois_field_type::at(i);
+                    const auto &root = galois_field_type::at(i);
                     const auto error_location = *root.inverse().exponent();
 
 #ifdef DEBUG_VERBOSE
@@ -432,7 +432,7 @@ namespace mr {
                     ++errors_found;
                 }
 
-                for(size_t j=0; i<n-1 && j<error_locator_polynomial.num_coeffs; j++)
+                for(size_t j=0; i<n-1 && j<t+1; j++)
                     tmp_elp[j] *= galois_field_type::at(j);
             }
         }
@@ -441,7 +441,7 @@ namespace mr {
             for(size_t i=0; i<n; i++) {
                 // see which elements are roots by substitution
 
-                const auto root_candidate = galois_field_type::at(i);
+                const auto &root_candidate = galois_field_type::at(i);
 
                 // substitute into elp
 
