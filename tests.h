@@ -120,7 +120,7 @@ struct test_m_t_coeffs {
         // initialize a full length buffer so codec won't access unrelated memory if data size less than full capacity
 
         char msg_buffer[bch_type::n_bytes] = {};
-        std::sprintf(msg_buffer, "Hello");
+        std::snprintf(msg_buffer, 5+1,  "Hello");
         const std::string msg(msg_buffer, bch_type::n_data_bytes);
 
         const auto msg_bytes = msg.c_str();
