@@ -118,12 +118,12 @@ BCH from the [ATSC A/336 specification](https://www.atsc.org/wp-content/uploads/
 
 With no DEBUG_* compiler flags defined, code in main.cpp prints only one line:
 
-    mr::bch<7, 13, 0, 6, 7> 100 test iterations (encode -> add errors -> decode) took 4.046874 [s] (avg: 40.468740 [ms])
+    mr::bch<7, 13, 0, 6, 7> 100 test iterations (encode -> add errors -> decode) took 1.760389 [s] (avg: 17.603889 [ms])
 
 Adding the DEBUG_VERBOSE_ENC_DEC to the compiler defines makes one line appear for each encode/decode routine execution:
 
-    mr::bch<7, 13, 0, 6, 7>::encode_codeword... execution took 201 us (0.000201 s)
-    mr::bch<7, 13, 0, 6, 7>::decode_codeword... execution took 43810 us (0.04381 s)
+    mr::bch<7, 13, 0, 6, 7>::encode_codeword... execution took 198.639 us (0.000198639 s)
+    mr::bch<7, 13, 0, 6, 7>::decode_codeword... execution took 17318.9 us (0.0173189 s)
 
 The output after adding also the DEBUG_VERBOSE to the compiler defines prints the full debug output for every test iteration, including the full Galois field summary:
 
@@ -281,70 +281,70 @@ The output after adding also the DEBUG_VERBOSE to the compiler defines prints th
     minimal polynomial a^[ 21] {msb...lsb}: 11010011
     minimal polynomial a^[ 23] {msb...lsb}: 11100101
     generator polynomial (77th order) {msb...lsb}: 111101100111011101100000001110000101111000110101100100001111100011001000100101
-    mr::bch<7, 13, 0, 6, 7>::encode_codeword... execution took 205 us (0.000205 s)
+    mr::bch<7, 13, 0, 6, 7>::encode_codeword... execution took 204.534 us (0.000204534 s)
     test poly:      0000000000011011110110110001101100011001010100100000100101110111010111100010100010110110001110001101101010001111111111111111111
-    testing by corrupting message bit 35 @ byte 4
-    testing by corrupting message bit 24 @ byte 3
-    testing by corrupting message bit 50 @ byte 6
-    testing by corrupting message bit 105 @ byte 13
-    testing by corrupting message bit 2 @ byte 0
-    testing by corrupting message bit 108 @ byte 13
-    testing by corrupting message bit 5 @ byte 0
-    testing by corrupting message bit 76 @ byte 9
-    testing by corrupting message bit 78 @ byte 9
-    testing by corrupting message bit 8 @ byte 1
-    testing by corrupting message bit 86 @ byte 10
+    testing by corrupting message bit 44 @ byte 5
     testing by corrupting message bit 13 @ byte 1
-    testing by corrupting message bit 23 @ byte 2
-    decoding poly:  0000000000011011111111110001101100011001110100101010100101110111010111100010000010110110001010001101100110001111101111011011011
+    testing by corrupting message bit 116 @ byte 14
+    testing by corrupting message bit 112 @ byte 14
+    testing by corrupting message bit 90 @ byte 11
+    testing by corrupting message bit 110 @ byte 13
+    testing by corrupting message bit 72 @ byte 9
+    testing by corrupting message bit 3 @ byte 0
+    testing by corrupting message bit 30 @ byte 3
+    testing by corrupting message bit 103 @ byte 12
+    testing by corrupting message bit 113 @ byte 14
+    testing by corrupting message bit 2 @ byte 0
+    testing by corrupting message bit 26 @ byte 3
+    decoding poly:  0000000000111101010110100001101100010001010100100000101101110111010111100010100010010110001110000101001010001111101111111110011
     decoding bit errors...
-    syndrome[0]: 0111110 --> a^ 85
-    syndrome[1]: 0111110 --> a^ 43
-    syndrome[2]: 0110110 --> a^116
-    syndrome[3]: 0111110 --> a^ 86
-    syndrome[4]: 0111000 --> a^ 48
-    syndrome[5]: 0110110 --> a^105
-    syndrome[6]: 1000100 --> a^ 38
-    syndrome[7]: 0111110 --> a^ 45
-    syndrome[8]: 1100000 --> a^ 91
-    syndrome[9]: 0111000 --> a^ 96
-    syndrome[10]: 0000001 --> a^  0
-    syndrome[11]: 0110110 --> a^ 83
-    syndrome[12]: 0110100 --> a^ 41
-    syndrome[13]: 1000100 --> a^ 76
-    syndrome[14]: 1111110 --> a^112
-    syndrome[15]: 0111110 --> a^ 90
-    syndrome[16]: 1100000 --> a^ 59
-    syndrome[17]: 1100000 --> a^ 55
-    syndrome[18]: 1011001 --> a^ 94
-    syndrome[19]: 0111000 --> a^ 65
-    syndrome[20]: 0010110 --> a^108
-    syndrome[21]: 0000001 --> a^  0
-    syndrome[22]: 0101010 --> a^ 65
-    syndrome[23]: 0110110 --> a^ 39
-    syndrome[24]: 1011001 --> a^117
-    syndrome[25]: 0110100 --> a^ 82
-    found error locator polynomial root @ a^ 19 --> error location: a^108
-    found error locator polynomial root @ a^ 22 --> error location: a^105
-    found error locator polynomial root @ a^ 41 --> error location: a^ 86
-    found error locator polynomial root @ a^ 49 --> error location: a^ 78
-    found error locator polynomial root @ a^ 51 --> error location: a^ 76
-    found error locator polynomial root @ a^ 77 --> error location: a^ 50
-    found error locator polynomial root @ a^ 92 --> error location: a^ 35
-    found error locator polynomial root @ a^103 --> error location: a^ 24
-    found error locator polynomial root @ a^104 --> error location: a^ 23
+    syndrome[0]: 0100011 --> a^ 45
+    syndrome[1]: 0100011 --> a^ 90
+    syndrome[2]: 1001011 --> a^ 69
+    syndrome[3]: 0100011 --> a^ 53
+    syndrome[4]: 1111011 --> a^ 28
+    syndrome[5]: 1001011 --> a^ 11
+    syndrome[6]: 0111110 --> a^ 54
+    syndrome[7]: 0100011 --> a^106
+    syndrome[8]: 1001101 --> a^ 33
+    syndrome[9]: 1111011 --> a^ 56
+    syndrome[10]: 0000101 --> a^102
+    syndrome[11]: 1001011 --> a^ 22
+    syndrome[12]: 1100010 --> a^ 42
+    syndrome[13]: 0111110 --> a^108
+    syndrome[14]: 0010101 --> a^113
+    syndrome[15]: 0100011 --> a^ 85
+    syndrome[16]: 1001101 --> a^ 20
+    syndrome[17]: 1001101 --> a^ 66
+    syndrome[18]: 1000011 --> a^ 54
+    syndrome[19]: 1111011 --> a^112
+    syndrome[20]: 1011101 --> a^ 85
+    syndrome[21]: 0000101 --> a^ 77
+    syndrome[22]: 1011010 --> a^121
+    syndrome[23]: 1001011 --> a^ 44
+    syndrome[24]: 1000011 --> a^ 51
+    syndrome[25]: 1100010 --> a^ 84
+    found error locator polynomial root @ a^ 11 --> error location: a^116
+    found error locator polynomial root @ a^ 14 --> error location: a^113
+    found error locator polynomial root @ a^ 15 --> error location: a^112
+    found error locator polynomial root @ a^ 17 --> error location: a^110
+    found error locator polynomial root @ a^ 24 --> error location: a^103
+    found error locator polynomial root @ a^ 37 --> error location: a^ 90
+    found error locator polynomial root @ a^ 55 --> error location: a^ 72
+    found error locator polynomial root @ a^ 83 --> error location: a^ 44
+    found error locator polynomial root @ a^ 97 --> error location: a^ 30
+    found error locator polynomial root @ a^101 --> error location: a^ 26
     found error locator polynomial root @ a^114 --> error location: a^ 13
-    found error locator polynomial root @ a^119 --> error location: a^  8
-    found error locator polynomial root @ a^122 --> error location: a^  5
+    found error locator polynomial root @ a^124 --> error location: a^  3
     found error locator polynomial root @ a^125 --> error location: a^  2
-    corrupted (13 errs):    0000000000011011111111110001101100011001110100101010100101110111010111100010000010110110001010001101100110001111101111011011011
-    error mask:             0000000000000000001001000000000000000000100000001010000000000000000000000000100000000000000100000000001100000000010000100100100
+    corrupted (13 errs):    0000000000111101010110100001101100010001010100100000101101110111010111100010100010010110001110000101001010001111101111111110011
+    error mask:             0000000000100110100000010000000000001000000000000000001000000000000000000000000000100000000000001000100000000000010000000001100
     corrected:              0000000000011011110110110001101100011001010100100000100101110111010111100010100010110110001110001101101010001111111111111111111
-    mr::bch<7, 13, 0, 6, 7>::decode_codeword... execution took 27383 us (0.027383 s)
+    mr::bch<7, 13, 0, 6, 7>::decode_codeword... execution took 18635.9 us (0.0186359 s)
     mr::bch<7, 13, 0, 6, 7> test result:
     input:      (hex: 48 65 6c 6c 6f 00 00) "Hello"
     encoded:    (hex: ff ff 47 6d 1c 5b 14 af bb 04 a9 8c 8d ed 0d 00)
-    corrupted:  (hex: db de c7 6c 14 5b 10 af bb 54 e9 8c 8d ff 0d 00)
+    corrupted:  (hex: f3 df 47 29 1c 4b 14 af bb 05 a9 88 0d ad 1e 00)
     decoded:    (hex: 48 65 6c 6c 6f 00 00) "Hello"
 
 ## Example of the Phobos Lander
@@ -369,8 +369,19 @@ then (2^m-1) - m*t = 113 = k and works for m=7, t=2 and BCH(127, 113) together w
 
     mr::bch<7, 2, 0, 3, 7>
 
-The debug output correctly prints the matching generator polynomial (msb...lsb: 100001101110111):
-    
+The debug output correctly prints the matching generator polynomial (msb...lsb: 100001101110111).        
+
+For reference, below is the output of all three verbosity schemes:
+
+    mr::bch<7, 2, 0, 3, 7> 100 test iterations (encode -> add errors -> decode) took 0.242246 [s] (avg: 2.422458 [ms])
+
+With DEBUG_VERBOSE_ENC_DEC:
+
+    mr::bch<7, 2, 0, 3, 7>::encode_codeword... execution took 245.113 us (0.000245113 s)
+    mr::bch<7, 2, 0, 3, 7>::decode_codeword... execution took 2386.37 us (0.00238637 s)
+
+With DEBUG_VERBOSE and DEBUG_VERBOSE_ENC_DEC:
+
     BCH (m=7, n=127, t=ECC=2, k=data_bits=113, parity_bits=14, primitive_polynomial=10001001):
     ...
     cyclotomic cosets [a^  1]: 1, 2, 4, 8, 16, 32, 64, 
@@ -378,26 +389,26 @@ The debug output correctly prints the matching generator polynomial (msb...lsb: 
     minimal polynomial a^[  1] {msb...lsb}: 10001001
     minimal polynomial a^[  3] {msb...lsb}: 10001111
     generator polynomial (14th order) {msb...lsb}: 100001101110111
-    mr::bch<7, 2, 0, 3, 7>::encode_codeword... execution took 576 us (0.000576 s)
+    mr::bch<7, 2, 0, 3, 7>::encode_codeword... execution took 664.433 us (0.000664433 s)
     test poly:      0000000000000000000000000000000000000000000000000000000000000000000000000011011110110110001101100011001010100100010110000001111
-    testing by corrupting message bit 14 @ byte 1
-    testing by corrupting message bit 39 @ byte 4
-    decoding poly:  0000000000000000000000000000000000000000000000000000000000000000000000000011011110110111001101100011001010100100110110000001111
+    testing by corrupting message bit 1 @ byte 0
+    testing by corrupting message bit 13 @ byte 1
+    decoding poly:  0000000000000000000000000000000000000000000000000000000000000000000000000011011110110110001101100011001010100100000110000001101
     decoding bit errors...
-    syndrome[0]: 1110111 --> a^100
-    syndrome[1]: 1110111 --> a^ 73
-    syndrome[2]: 1101000 --> a^100
-    syndrome[3]: 1110111 --> a^ 19
-    found error locator polynomial root @ a^ 88 --> error location: a^ 39
-    found error locator polynomial root @ a^113 --> error location: a^ 14
-    corrupted (2 errs): 0000000000000000000000000000000000000000000000000000000000000000000000000011011110110111001101100011001010100100110110000001111
-    error mask:         0000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000100000000000000
+    syndrome[0]: 1100110 --> a^ 29
+    syndrome[1]: 1100110 --> a^ 58
+    syndrome[2]: 1101111 --> a^ 52
+    syndrome[3]: 1100110 --> a^116
+    found error locator polynomial root @ a^114 --> error location: a^ 13
+    found error locator polynomial root @ a^126 --> error location: a^  1
+    corrupted (2 errs): 0000000000000000000000000000000000000000000000000000000000000000000000000011011110110110001101100011001010100100000110000001101
+    error mask:         0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000010
     corrected:          0000000000000000000000000000000000000000000000000000000000000000000000000011011110110110001101100011001010100100010110000001111
-    mr::bch<7, 2, 0, 3, 7>::decode_codeword... execution took 12550 us (0.01255 s)
+    mr::bch<7, 2, 0, 3, 7>::decode_codeword... execution took 4912.92 us (0.00491292 s)
     mr::bch<7, 2, 0, 3, 7> test result:
     input:      (hex: 48 65 6c 6c 6f 00 00 00 00 00 00 00 00 00 00) "Hello"
     encoded:    (hex: 0f 2c 52 19 1b db 1b 00 00 00 00 00 00 00 00 00)
-    corrupted:  (hex: 0f 6c 52 19 9b db 1b 00 00 00 00 00 00 00 00 00)
+    corrupted:  (hex: 0d 0c 52 19 1b db 1b 00 00 00 00 00 00 00 00 00)
     decoded:    (hex: 48 65 6c 6c 6f 00 00 00 00 00 00 00 00 00 00) "Hello"
 
 ## TODO's
