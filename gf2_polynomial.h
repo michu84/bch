@@ -19,6 +19,8 @@ namespace mr {
         constexpr gf2_polynomial(const base &other)
             : base(other) {}
 
+        constexpr ~gf2_polynomial() {}
+
     private:
         using base::base; // hide the inherited ctor
     };
@@ -33,6 +35,8 @@ namespace mr {
 
         constexpr static_gf2_polynomial(const base &other)
             : base(other) {}
+
+        constexpr ~static_gf2_polynomial() {}
 
     private:
         using base::base; // hide the inherited ctor

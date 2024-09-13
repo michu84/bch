@@ -100,7 +100,6 @@ namespace mr {
             constexpr auto copied = to_order + 1; // +1 for coeff x^0
             std::copy(from.coeffs, from.coeffs + copied, to.coeffs);
         }
-
     }
 
     template<typename T, unsigned from_order, unsigned to_order>

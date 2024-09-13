@@ -218,9 +218,9 @@ namespace mr {
         constexpr static minimal_polynomial_type reduce_coefficients(const minimal_polynomial_finder_type &finder) {
             minimal_polynomial_type out;
             for(size_t i=0; i<out.num_coeffs; i++) {
-                const auto has_value = finder.coeffs[i].exponent().has_value();
+                const auto exponent_has_value = finder.coeffs[i].exponent().has_value();
                 const auto poly_is_zero = finder.is_zero();
-                out.coeffs[i] = has_value
+                out.coeffs[i] = exponent_has_value
                                 && !poly_is_zero;
             }
             return out;

@@ -70,6 +70,7 @@ namespace mr {
                     }
 
                     alpha_power_cosets[cj++] = {i, alpha_power};
+
                     skip_redundant_mask[alpha_power] = true;
                     cosets_found |= true;
                 }
@@ -107,8 +108,10 @@ namespace mr {
                     const auto &alpha_element = galois_field_type::at(coset_item->power);
 
                     const minimal_polynomial_finder_type finder_alpha(alpha_element, 0);
+
                     assert(finder_alpha != finder_0);
                     assert(finder_x != finder_alpha);
+
                     this_minimal_poly_finder *= finder_x - finder_alpha;
                 }
 
@@ -175,6 +178,7 @@ namespace mr {
                     const auto coset_power_match = cosets[s]->power == (syndrome_index+1);
                     const auto &poly = minimal_polynomials.polynomials[c];
                     const auto poly_coset_base_match = poly->coset_base == cosets[s]->base;
+
                     if(coset_power_match
                         && poly_coset_base_match)
                         return c;
@@ -187,6 +191,7 @@ namespace mr {
             syndrome_polynomials_gen_type syndrome_polys;
             for(unsigned i=0; i<2*t; i++) {
                 const auto result = minimal_polynomial_global_index(i);
+
                 if(result.has_value())
                     syndrome_polys.global[i] = result.value();
             }
@@ -278,7 +283,7 @@ namespace mr {
             constexpr polynomial<bit_t, n> _x_shift_degree(1, generator_polynomial.degree());
             const auto _input_shifted = (_x_shift_degree * _x).trimmed();
             const auto dd = _input_shifted / generator_polynomial;
-            const auto encoded_parity_polynomial = dd.r; // ignoring division quotient, care only about residual
+            const auto &encoded_parity_polynomial = dd.r; // ignoring division quotient, care only about residual
 
             pack_codeword(data_bytes, encoded_parity_polynomial, codeword);
 
