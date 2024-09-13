@@ -58,11 +58,11 @@ namespace mr {
         }
 
         struct print_name {
-            void operator() (const std::string &name) const { std::cout << name << " "; };
+            void operator() (const std::string &name) const { std::cout << name << " "; }
         };
 
         struct print_none {
-            constexpr void operator() (const std::string &) const {};
+            constexpr void operator() (const std::string &) const {}
         };
 
         template<typename F, typename Printer = print_none>
