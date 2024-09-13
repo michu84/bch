@@ -35,7 +35,7 @@ namespace mr {
             return at(powr).poly();
         }
 
-        constexpr static std::optional<element_power_type> __null_powr = {};
+        constexpr static std::optional<element_power_type> __null_power = {};
 
         constexpr static const std::optional<element_power_type>& power_by_poly(const element_polynomial_type &poly)
         {
@@ -43,11 +43,11 @@ namespace mr {
 
             // TODO: use lookup tables?
 
-            for(const auto &element : elements)
-                if(element.poly() == poly)
-                    return element.exponent();
+            for(const auto &elem : elements)
+                if(elem.poly() == poly)
+                    return elem.exponent();
 
-            return __null_powr;
+            return __null_power;
         }
 
         struct element {
