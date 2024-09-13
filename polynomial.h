@@ -250,7 +250,7 @@ namespace mr {
 
         constexpr bool operator == (const polynomial &other) const {
             for(size_t i=0; i<num_coeffs; i++)
-                if(coeffs[i] != other[i])
+                if(coeffs[i] != other.coeffs[i])
                     return false;
 
             return true;
@@ -269,9 +269,10 @@ namespace mr {
             // add coeffs
 
             polynomial out;
-            const auto limit = std::max(degree(), other.degree()); // TODO: get rid of degree() calls?
 
-            for(size_t i=0; i<limit+1; i++) {
+            // TODO: how to determine when it's worth limiting loop with degree() ?
+
+            for(size_t i=0; i<num_coeffs; i++) {
                 out[i] = poly_coeff_add( // if coeffs are bool, it evaluates as modulo2
                     coeffs[i],
                     other.coeffs[i]
@@ -291,9 +292,10 @@ namespace mr {
             // subtract coeffs
 
             polynomial out;
-            const auto limit = std::max(degree(), other.degree()); // TODO: get rid of degree() calls?
 
-            for(size_t i=0; i<limit+1; i++) {
+            // TODO: how to determine when it's worth limiting loop with degree() ?
+
+            for(size_t i=0; i<num_coeffs; i++) {
                 out[i] = poly_coeff_sub( // if coeffs are bool, it evaluates as modulo2
                     coeffs[i],
                     other.coeffs[i]
@@ -369,10 +371,12 @@ namespace mr {
             // q = 0
             out.r = *this;
 
+            const auto div_degree = divisor.degree();
+
             while(!out.r.is_zero()
-                  && (out.r.degree() >= divisor.degree()))
+                  && (out.r.degree() >= div_degree))
             {
-                const auto powr_diff = out.r.degree() - divisor.degree();
+                const auto powr_diff = out.r.degree() - div_degree;
                 const polynomial dq(1, powr_diff);
 
                 out.q += dq;
