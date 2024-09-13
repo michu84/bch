@@ -27,37 +27,48 @@ namespace mr {
         }
 
         template<typename F>
-        auto operator() (const std::string &name, F &&f) const {
+        static auto execute(F &&f) {
             const auto started = start();
             const auto result = std::forward<F>(f) ();
             const auto elapsed = end(started);
 
-            std::cout << name
-                      << " execution took "
-                      << elapsed.count() << " us"
-                      << " ("
-                      << (elapsed.count() / 1000000.0) << " s)"
-                      << std::endl;
-
-            return result;
+            return std::make_pair(result, elapsed);
         }
 
         template<typename F>
-        auto operator() (F &&f) const {
-            const auto started = start();
-                const auto result = std::forward<F>(f) ();
-            const auto elapsed = end(started);
-
+        static void print(const auto &elapsed) {
             std::cout << "execution took "
                       << elapsed.count() << " us"
                       << " ("
                       << (elapsed.count() / 1000000.0) << " s)"
                       << std::endl;
+        }
 
-            return result;
+        struct print_name {
+            void operator() (const std::string &name) const { std::cout << name << " "; };
+        };
+
+        struct print_none {
+            void operator() (const std::string &) const {};
+        };
+
+        template<typename F, typename Printer = print_none>
+        auto operator() (F &&f, const std::string &name = {}) const {
+            const auto result = execute(std::forward<F>(f));
+
+            Printer{}
+            (name);
+
+            measure_time::print<F>(result.second);
+
+            return result.first;
+        }
+
+        template<typename F>
+        auto operator() (const std::string &name, F &&f) const {
+            return measure_time::operator() <F, print_name>(std::forward<F>(f), name);
         }
     };
-
 }
 
 #endif // MEASURE_TIME_H
