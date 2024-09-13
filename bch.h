@@ -416,8 +416,8 @@ namespace mr {
                     sum += tmp_elp[j];
 
                 if(sum.poly().is_zero()) {
-                    const auto root = galois_field_type::at(i).inverse();
-                    const auto error_location = *root.exponent();
+                    const auto root = galois_field_type::at(i);
+                    const auto error_location = *root.inverse().exponent();
 
 #ifdef DEBUG_VERBOSE
                     printf("found error locator polynomial root @ a^%3ld --> error location: a^%3d\n", i, error_location);
