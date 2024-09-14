@@ -39,13 +39,19 @@ namespace mr {
             return std::chrono::duration<result_value_type, std::nano>(elapsed).count();
         }
 
+        template<typename T, typename Duration>
+        struct execute_result {
+            T result;
+            Duration duration;
+        };
+
         template<typename F>
         static auto execute(F &&f) {
             const auto started = start();
             const auto result = std::forward<F>(f) ();
             const auto elapsed = end(started);
 
-            return std::make_pair(result, elapsed);
+            return execute_result{result, elapsed};
         }
 
         template<typename F>
@@ -72,9 +78,9 @@ namespace mr {
             Printer{}
             (name);
 
-            measure_time::print<F>(result.second);
+            measure_time::print<F>(result.duration);
 
-            return result.first;
+            return result;
         }
 
         template<typename F>

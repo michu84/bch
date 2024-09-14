@@ -20,12 +20,15 @@ int main(int argc, char* argv[])
     const auto rand_time = time(nullptr);
 
 #ifdef DEBUG_VERBOSE
-    printf("rand_time: %li\n", rand_time);
+    std::cout << "rand_time: " << rand_time << std::endl;
 #endif
 
     srand(rand_time);
 
     const auto repeats = argc == 2 ? std::atoi(argv[1]) : 100;
+
+    // measure_time_test<mr::measure_time<>>{}
+    // (3);
 
     bch_tester<ATSC_A336_codec_type>{}
     (repeats);

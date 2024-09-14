@@ -3,9 +3,11 @@
 #include "bch.h"
 #include "measure_time.h"
 
+#include <cmath>
 #include <cstdint>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <vector>
 
 void test_m5();
@@ -135,13 +137,14 @@ struct test_m_t_coeffs {
         std::stringstream encode_type_ss;
         encode_type_ss << bch_type_str << "::encode_codeword...";
 
-        auto encoded =
+
 #ifdef DEBUG_VERBOSE_ENC_DEC
-            mr::measure_time{} (encode_type_ss.str(), [&] {
-                return bch_type::encode_codeword(msg_bytes);
-            });
+        const auto measure_result = mr::measure_time{} (encode_type_ss.str(), [&] {
+            return bch_type::encode_codeword(msg_bytes);
+        });
+        auto encoded = measure_result.result;
 #else
-            bch_type::encode_codeword(msg_bytes);
+        auto encoded = bch_type::encode_codeword(msg_bytes);
 #endif
 
         if(add_errors > 0
@@ -165,22 +168,22 @@ struct test_m_t_coeffs {
 #endif
         }
 
-        std::vector<uint8_t> corrupted_copy(encoded->data_bytes, encoded->data_bytes + bch_type::n_bytes);
+        const std::vector<uint8_t> corrupted_copy(encoded->data_bytes, encoded->data_bytes + bch_type::n_bytes);
 
-        char decoded[msg_size_bytes];
-        std::memset(decoded, 0, msg_size_bytes);
+        char decoded[msg_size_bytes] = {};
 
         if(encoded.has_value()) {
             std::stringstream decode_type_ss;
             decode_type_ss << bch_type_str << "::decode_codeword...";
 
-            const auto error_code =
+
 #ifdef DEBUG_VERBOSE_ENC_DEC
-                mr::measure_time{} (decode_type_ss.str(), [&] {
-                    return bch_type::decode_codeword(*encoded, &decoded);
-                });
+            const auto measure_result = mr::measure_time{} (decode_type_ss.str(), [&] {
+                return bch_type::decode_codeword(*encoded, &decoded);
+            });
+            const auto error_code = measure_result.result;
 #else
-                bch_type::decode_codeword(*encoded, &decoded);
+            const auto error_code = bch_type::decode_codeword(*encoded, &decoded);
 #endif
 
             if(error_code < 0) {
@@ -273,3 +276,31 @@ struct bch_tester<mr::bch<m, t, poly...>> {
 };
 
 void test_all();
+
+template<typename>
+struct measure_time_test;
+
+template<typename Resolution, typename ClockType>
+struct measure_time_test<mr::measure_time<Resolution, ClockType>> {
+    using tested_type = mr::measure_time<Resolution, ClockType>;
+
+    constexpr static auto seconds_to_wait = 1;
+    constexpr static auto tolerance = 0.1;
+
+    void operator() (unsigned repeats = 1) const {
+        do {
+            std::stringstream ss;
+            ss << "testing time measurement with a " << seconds_to_wait << "s (" << tolerance << "s tolerance) pause...";
+
+            const auto result = tested_type{} (ss.str(), [] {
+                std::this_thread::sleep_for(std::chrono::seconds(seconds_to_wait)); // just one second
+                return 0;
+            });
+
+            const auto time_diff = tested_type::seconds(result.duration) - seconds_to_wait;
+
+            assert(time_diff > 0); // can't be faster than expected, too rigorous?
+            assert(std::fabs(time_diff) < tolerance); // allow 100ms drift...
+        } while(--repeats > 0);
+    }
+};
