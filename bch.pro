@@ -3,6 +3,10 @@ CONFIG += console c++20
 CONFIG -= app_bundle
 CONFIG -= qt
 
+CONFIG(release, debug|release) {
+    DEFINES += NDEBUG # makes assert(...) do nothing
+}
+
 # DEFINES += DEBUG_VERBOSE
 # DEFINES += DEBUG_VERBOSE_ENC_DEC
 
