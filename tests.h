@@ -297,7 +297,7 @@ struct measure_time_test<mr::measure_time<Resolution, ClockType>> {
                 return 0;
             });
 
-            const auto time_diff = tested_type::seconds(result.duration) - seconds_to_wait;
+            [[ maybe_unused ]] const auto time_diff = tested_type::seconds(result.duration) - seconds_to_wait;
 
             assert(time_diff > 0); // can't be faster than expected, too rigorous?
             assert(std::fabs(time_diff) < tolerance); // allow 100ms drift...
