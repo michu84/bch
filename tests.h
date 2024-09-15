@@ -17,7 +17,8 @@ void corrupt_bit_in_bytes(uint8_t *bytes, const auto corrupted_bit_idx) {
     const auto byte_idx = corrupted_bit_idx / 8;
 
 #ifdef DEBUG_VERBOSE
-    printf("testing by corrupting message bit %i @ byte %i\n", corrupted_bit_idx, byte_idx);
+    std::cout << "testing by corrupting message bit " << corrupted_bit_idx
+              << " @ byte " << byte_idx << std::endl;
 #endif
 
     bytes[byte_idx] ^= 1U << (corrupted_bit_idx % 8);
@@ -39,11 +40,6 @@ void corrupt_encoded_frame(auto &encoded, const auto add_errors, const auto msg_
 
         corrupt_bit_in_bytes(encoded.data_bytes, target_bit_idx);
     }
-
-// #ifdef DEBUG_VERBOSE
-//     using encoded_type = typename std::decay<decltype(encoded)>::type;
-//     printf("test poly:\t\t%s\n", polynomial<bit_t, encoded_type::n_bytes>::make_from_memory(encoded.data_bytes).to_string().c_str());
-// #endif
 }
 
 void corrupt_encoded_frame_example(auto &encoded) {
@@ -60,15 +56,15 @@ void corrupt_encoded_frame_example_zero_syndrome_anomaly(auto &encoded) {
 
 template<typename T>
 void print_as_hex(T &&x, size_t n, bool end_line = false) {
-    printf("(hex:");
+    std::cout << "(hex:" << std::hex << std::setfill('0');
 
     for(size_t i=0; i<n; i++)
-        printf(" %.2x", static_cast<const uint8_t &>(std::forward<T>(x)[i]));
+        std::cout << " " << std::setw(2) << static_cast<int>(std::forward<T>(x)[i]);
 
-    printf(")");
+    std::cout << std::setw(1) << std::dec << std::setfill(' ') << ")";
 
     if(end_line)
-        printf("\n");
+        std::cout << std::endl;
 }
 
 template<unsigned...>
@@ -151,7 +147,7 @@ struct test_m_t_coeffs {
             && encoded.has_value()) {
 
 #ifdef DEBUG_VERBOSE
-            printf("test poly:\t\t%s\n", mr::polynomial<bit_t, bch_type::n-1>::make_from_memory(encoded->data_bytes).to_string().c_str());
+            std::cout << "test poly:\t\t" << mr::polynomial<bit_t, bch_type::n-1>::make_from_memory(encoded->data_bytes).to_string() << std::endl;
 #endif
 
 #if 1
@@ -159,12 +155,6 @@ struct test_m_t_coeffs {
 #else
             corrupt_encoded_frame_example_zero_syndrome_anomaly(*encoded); // rare anomaly that broke the previous decoder implementation for m=5, t=3, p=0,2,5
             // corrupt_encoded_frame_example(*encoded); // just a working example
-#endif
-
-#if 0
-#ifdef DEBUG_VERBOSE
-            printf("test poly corrupted:   %s\n", polynomial<bit_t, bch_type::n-1>::make_from_memory(encoded->data_bytes).to_string().c_str());
-#endif
 #endif
         }
 
@@ -188,27 +178,27 @@ struct test_m_t_coeffs {
 
             if(error_code < 0) {
 #ifdef DEBUG_VERBOSE
-                printf("detected %d errors\n", -error_code);
+                std::cout << "detected " << -error_code << " errors" << std::endl;
 #endif
                 assert(false);
             }
 
 #ifdef DEBUG_VERBOSE
-            printf("%s test result:\n", bch_type_str.c_str());
+            std::cout << bch_type_str << " test results:" << std::endl;
 
-            printf("input:\t\t");
+            std::cout << "input:\t\t";
             print_as_hex(msg.c_str(), bch_type::n_data_bytes, false);
-            printf(" \"%s\"\n", msg.c_str());
+            std::cout << " \"" << msg << "\"" << std::endl;
 
-            printf("encoded:\t");
+            std::cout << "encoded:\t";
             print_as_hex(encoded->data_bytes, encoded->n_bytes, true);
 
-            printf("corrupted:\t");
+            std::cout << "corrupted:\t";
             print_as_hex(corrupted_copy, encoded->n_bytes, true);
 
-            printf("decoded:\t");
+            std::cout << "decoded:\t";
             print_as_hex(decoded, bch_type::n_data_bytes, false);
-            printf(" \"%s\"\n", decoded);
+            std::cout << " \"" << decoded << "\"" << std::endl;
 #endif
 
 #if 1
@@ -219,7 +209,7 @@ struct test_m_t_coeffs {
                 const auto rhs = msg_bytes[byte_idx] & (1 << bit_idx);
 
                 if(lhs != rhs) {
-                    printf("%s != %s (FAIL)\n", decoded, msg_bytes);
+                    std::cout << decoded << " != " << msg_bytes << " (FAIL)" << std::endl;
                     assert(false);
                 }
             }
@@ -267,11 +257,9 @@ struct bch_tester<mr::bch<m, t, poly...>> {
         print_procedure_type{}
         (bch_type_ss);
 
-        printf("%s %d test iterations (encode -> add errors -> decode) took %f [s] (avg: %f [ms])\n\n",
-               bch_type_ss.str().c_str(),
-               repeats,
-               measurement_type::seconds(elapsed),
-               measurement_type::milliseconds(elapsed) / repeats);
+        std::cout << bch_type_ss.str() << " " << repeats << " test iterations (encode -> add errors -> decode) took "
+                  << measurement_type::seconds(elapsed) << " [s] (avg: "
+                  << measurement_type::milliseconds(elapsed) / repeats << " [ms])" << std::endl << std::endl;
     }
 };
 

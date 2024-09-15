@@ -3,6 +3,7 @@
 #include "polynomial.h"
 #include "galois.h"
 #include <cstring>
+#include <iomanip>
 
 namespace mr {
 
@@ -425,7 +426,7 @@ namespace mr {
                     const auto error_location = *(root_ref.get()).inverse().exponent();
 
 #ifdef DEBUG_VERBOSE
-                    printf("found error locator polynomial root @ a^%3lli --> error location: a^%3d\n", i, error_location);
+                    std::cout << "found error locator polynomial root @ a^" << i << " --> error location: a^" << error_location << std::endl;
 #endif
 
                     errors_mask[error_location] = true;
@@ -455,7 +456,7 @@ namespace mr {
                     const auto error_location = (*root_candidate_ref.get()).inverse().exponent();
 
 #ifdef DEBUG_VERBOSE
-                    printf("found error locator polynomial root @ a^%3ld --> error location: a^%3d\n", i, error_location);
+                    std::cout << "found error locator polynomial root @ a^" << i << " --> error location: a^" << error_location << std::endl;
 #endif
 
                     errors_mask[error_location] = true;
@@ -497,9 +498,9 @@ namespace mr {
 
 #ifdef DEBUG_VERBOSE
                 if(syndrome_poly.is_zero())
-                    printf("syndrome[%lld]: %s --> 0\n", i, syndrome_polys[i].to_string().c_str());
+                    std::cout << "syndrome[" << i << "]: " << syndrome_polys[i].to_string() << " --> 0" << std::endl;
                 else
-                    printf("syndrome[%lld]: %s --> a^%3i\n", i, syndrome_polys[i].to_string().c_str(), *syndrome_element.exponent());
+                    std::cout << "syndrome[" << i << "]: " << syndrome_polys[i].to_string() << " --> a^" << *syndrome_element.exponent() << std::endl;
 #endif
             }
         }
@@ -525,7 +526,7 @@ namespace mr {
             const auto v = codeword_poly_type::make_from_memory(codeword.data_bytes);
 
     #ifdef DEBUG_VERBOSE
-            printf("decoding poly:\t\t%s\n", v.to_string().c_str());
+            std::cout << "decoding poly:\t\t" << v.to_string() << std::endl;
     #endif
 
             syndrome_polynomials_type syndrome_polys;
@@ -543,7 +544,7 @@ namespace mr {
                 // correct errors or return error if not recoverable
 
     #ifdef DEBUG_VERBOSE
-                printf("decoding bit errors...\n");
+                std::cout << "decoding bit errors..." << std::endl;
     #endif
 
                 // translate syndrome polynomials to the respective gf elements
@@ -576,12 +577,9 @@ namespace mr {
                 // correct error bits
 
 #ifdef DEBUG_VERBOSE
-                printf("corrupted (%d errs):\t%s\nerror mask:\t\t%s\ncorrected:\t\t%s\n",
-                   num_errors_found,
-                   v.to_string().c_str(),
-                   errors_mask.to_string().c_str(),
-                   (v + errors_mask).to_string().c_str()
-                );
+                std::cout << "corrupted (" << num_errors_found << " errs):\t" << v.to_string() << std::endl
+                          << "error mask:\t\t" << errors_mask.to_string() << std::endl
+                          << "corrected:\t\t" << (v + errors_mask).to_string() << std::endl;
 #endif
 
                 fix_codeword_errors(errors_mask, codeword);
@@ -598,8 +596,14 @@ namespace mr {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         static void print_bch_info() {
-            printf("BCH (m=%d, n=%d, t=ECC=%d, k=data_bits=%lld, parity_bits=%lld, primitive_polynomial=%s):\n",
-                   m, n, t, data_size_bits(), parity_size_bits(), galois_field_type::primitive_polynomial.to_string().c_str());
+            std::cout << "BCH ("
+                      << "m=" << m << ", "
+                      << "n=" << n << ", "
+                      << "t=ECC=" << t << ", "
+                      << "k=data_bits=" << k << ", "
+                      << "parity_bits=" << parity_size_bits() << ", "
+                      << "primitive_polynomial=" << galois_field_type::primitive_polynomial.to_string()
+                      << "):" << std::endl;
         }
 
         static void print_galois_field() {
@@ -607,7 +611,7 @@ namespace mr {
         }
 
         static void print_primitive_polynomial() {
-            printf("primitive polynomial {msb...lsb}: %s\n", galois_field_type::primitive_polynomial.to_string().c_str());
+            std::cout << "primitive polynomial {msb...lsb}: " << galois_field_type::primitive_polynomial.to_string() << std::endl;
         }
 
         static void print_cyclotomic_cosets() {
@@ -616,14 +620,14 @@ namespace mr {
                 if(!first_coset.has_value())
                     continue;
 
-                printf("cyclotomic cosets [a^%3d]: ", first_coset->base);
+                std::cout << "cyclotomic cosets [a^" << first_coset->base << "]: ";
                 for(const auto &coset : cosets) {
                     if(!coset.has_value())
                         break;
 
-                    printf("%u, ", coset->power);
+                    std::cout << coset->power << ", ";
                 }
-                printf("\n");
+                std::cout << std::endl;
             }
         }
 
@@ -631,12 +635,13 @@ namespace mr {
             for(const auto &poly : minimal_polynomials.polynomials) {
                 if(!poly.has_value())
                     break;
-                printf("minimal polynomial a^[%3d] {msb...lsb}: %s\n", poly->coset_base, poly->poly.to_string().c_str());
+                std::cout << "minimal polynomial a^[" << poly->coset_base << "] {msb...lsb}: " << poly->poly.to_string() << std::endl;
+
             }
         }
 
         static void print_generator_polynomial() {
-            printf("generator polynomial (%dth order) {msb...lsb}: %s\n", generator_polynomial.degree(), generator_polynomial.to_string(true).c_str());
+            std::cout << "generator polynomial (" << generator_polynomial.degree() << "th order) {msb...lsb}: " << generator_polynomial.to_string(true) << std::endl;
         }
 
         static void print_info() {

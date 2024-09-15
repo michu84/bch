@@ -4,6 +4,7 @@
 #include <optional>
 #include <array>
 #include <assert.h>
+#include <iomanip>
 
 namespace mr {
 
@@ -237,20 +238,18 @@ namespace mr {
         }
 
         static void print() {
-            printf("Galois field (2^m), m=%d, n=2^m-1=%d:\n", m, n);
+            std::cout << "Galois field (2^m): m=" << m << ", n=2^m-1=" << n << ":" << std::endl;
 
             for(auto i=0; i<=n; i++) {
                 const auto element_poly = init_field_polynomial_type(1, i);
 
                 const auto element_ref = get_nonzero_element(i);
 
-                printf("[a^%3d]: %s %% %s = %s%s\n",
-                    i,
-                    element_poly.to_string().c_str(),
-                    primitive_polynomial.to_string().c_str(),
-                    element_ref.get().poly().to_string().c_str(),
-                    i==n ? " (shown for clarity)" : ""
-                );
+                std::cout << "[a^" << i << "]: " << element_poly.to_string()
+                          << " % " << primitive_polynomial.to_string()
+                          << " = " << element_ref.get().poly().to_string()
+                          << (i==n ? " (shown for clarity:)" : "")
+                          << std::endl;
             }
         }
     };

@@ -212,10 +212,6 @@ namespace mr {
                 const bool bit_is_set = data_bytes[global_byte_idx] & (1U << local_bit_idx);
 
                 poly[start_power + j] = bit_is_set;
-
-#if 0
-                printf("polynomial, bit[%d,%d]: %s\n", global_byte_idx, local_bit_idx, bit_is_set ? "1" : "0");
-#endif
             }
 
             return poly;

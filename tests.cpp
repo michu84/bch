@@ -62,13 +62,11 @@ void test_m5()
         mr::polynomial<bit_t,m-1> final_r;
         polynomial_copy_unsafe(test.r, final_r);
 
-        printf("[a^%2d]: %s / %s: q=%s, r=%s\n",
-            i,
-            element_poly.to_string().c_str(),
-            gf_x5_x2_1.to_string().c_str(),
-            test.q.to_string().c_str(),
-            final_r.to_string().c_str()
-        );
+        std::cout << "[a^" << i << "]: "
+                  << element_poly.to_string()
+                  << " / " << gf_x5_x2_1.to_string()
+                  << ": q=" << test.q.to_string() << ", r=" << final_r.to_string()
+                  << std::endl;
 #endif
     }
     std::cout << std::endl;
@@ -88,13 +86,11 @@ void test_m7()
         mr::polynomial<bit_t,m-1> final_r;
         polynomial_copy_unsafe(test.r, final_r);
 
-        printf("[a^%3d]: %s / %s: q=%s, r=%s\n",
-            i,
-            element_poly.to_string().c_str(),
-            gf_x7_x6_1.to_string().c_str(),
-            test.q.to_string().c_str(),
-            final_r.to_string().c_str()
-        );
+        std::cout << "[a^" << i << "]: "
+                  << element_poly.to_string()
+                  << " / " << gf_x7_x6_1.to_string()
+                  << ": q=" << test.q.to_string() << ", r=" << final_r.to_string()
+                  << std::endl;
 #endif
     }
     std::cout << std::endl;
