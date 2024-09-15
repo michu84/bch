@@ -10,7 +10,8 @@ namespace mr {
              unsigned ECC, // error correction capability
              unsigned...PrimPolyNonzeroPowers> // unit powers of primitive polynomial to generate Galois field
     struct bch {
-        static_assert(M > 1, "sanity check!");
+        static_assert(M >= 3, "sanity check!");
+        static_assert(ECC < (1 << (M-1)), "sanity check!");
 
         constexpr static unsigned m = M;
         constexpr static unsigned t = ECC;
