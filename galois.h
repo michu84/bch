@@ -32,7 +32,8 @@ namespace mr {
         {
             // TODO: check if powr is available
             assert(powr < n);
-            return at(powr).poly();
+            const auto element_ref = at(powr);
+            return element_ref.get().poly();
         }
 
         constexpr static std::optional<element_power_type> __null_power = {};
@@ -208,12 +209,10 @@ namespace mr {
 
         constexpr static elements_type elements = make_elements();
 
-        constexpr static const element& at(const element_power_type &power_index) {
-            return elements[power_index + 1]; // +1 for zero first element
-        }
+        using element_ref_type = std::reference_wrapper<const element>;
 
-        constexpr const element& operator[] (const element_power_type & power_index) const {
-            return at(power_index);
+        constexpr static element_ref_type at(const element_power_type &power_index) {
+            return elements[power_index + 1]; // +1 for zero first element
         }
 
         using minimal_polynomial_finder_type = polynomial<element, m>;
@@ -235,11 +234,13 @@ namespace mr {
             for(auto i=0; i<=n; i++) {
                 const auto element_poly = init_field_polynomial_type(1, i);
 
+                const auto element_ref = at(i);
+
                 printf("[a^%3d]: %s %% %s = %s%s\n",
                     i,
                     element_poly.to_string().c_str(),
                     primitive_polynomial.to_string().c_str(),
-                    at(i).poly().to_string().c_str(),
+                    element_ref.get().poly().to_string().c_str(),
                     i==n ? " (shown for clarity)" : ""
                 );
             }

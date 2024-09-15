@@ -420,8 +420,8 @@ namespace mr {
                     sum += tmp_elp[j];
 
                 if(sum.poly().is_zero()) {
-                    const auto &root = galois_field_type::at(i);
-                    const auto error_location = *root.inverse().exponent();
+                    const auto root_ref = galois_field_type::at(i);
+                    const auto error_location = *(root_ref.get()).inverse().exponent();
 
 #ifdef DEBUG_VERBOSE
                     printf("found error locator polynomial root @ a^%3lli --> error location: a^%3d\n", i, error_location);
@@ -487,11 +487,11 @@ namespace mr {
                 const auto &syndrome_poly = syndrome_polys[i];
                 auto &syndrome_element = syndrome_elements[i];
 
-                const auto &x = galois_field_type::at(i+1);
+                const auto x_ref = galois_field_type::at(i+1);
 
                 for(int j=0; j<signed(m); j++) {
                     if(syndrome_poly[j])
-                        syndrome_element += x^j; // gf element power operator
+                        syndrome_element += x_ref.get()^j; // gf element power operator
                 }
 
 #ifdef DEBUG_VERBOSE
