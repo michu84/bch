@@ -105,9 +105,9 @@ namespace mr {
 
                 for(size_t j=0; j < m && coset_items[j].has_value(); j++) {
                     const auto &coset_item = coset_items[j];
-                    const auto &alpha_element = galois_field_type::at(coset_item->power);
+                    const auto alpha_element_ref = galois_field_type::get_nonzero_element(coset_item->power);
 
-                    const minimal_polynomial_finder_type finder_alpha(alpha_element, 0);
+                    const minimal_polynomial_finder_type finder_alpha(alpha_element_ref.get(), 0);
 
                     assert(finder_alpha != finder_0);
                     assert(finder_x != finder_alpha);
@@ -420,7 +420,7 @@ namespace mr {
                     sum += tmp_elp[j];
 
                 if(sum.poly().is_zero()) {
-                    const auto root_ref = galois_field_type::at(i);
+                    const auto root_ref = galois_field_type::get_nonzero_element(i);
                     const auto error_location = *(root_ref.get()).inverse().exponent();
 
 #ifdef DEBUG_VERBOSE
@@ -432,7 +432,7 @@ namespace mr {
                 }
 
                 for(size_t j=0; i<n-1 && j<t+1; j++)
-                    tmp_elp[j] *= galois_field_type::at(j);
+                    tmp_elp[j] *= galois_field_type::get_nonzero_element(j);
             }
         }
 
@@ -440,7 +440,7 @@ namespace mr {
             for(size_t i=0; i<n; i++) {
                 // see which elements are roots by substitution
 
-                const auto &root_candidate = galois_field_type::at(i);
+                const auto root_candidate_ref = galois_field_type::get_nonzero_element(i);
 
                 // substitute into elp
 
@@ -448,10 +448,10 @@ namespace mr {
 
                 // int j because of galois_field_element_type::operator ^
                 for(int j=0; j<static_cast<const signed &>(error_locator_polynomial.num_coeffs); j++)
-                    result += error_locator_polynomial[j] * (root_candidate ^ j);
+                    result += error_locator_polynomial[j] * (root_candidate_ref ^ j);
 
                 if(result.poly().is_zero()) {
-                    const auto error_location = *root_candidate.inverse().exponent();
+                    const auto error_location = (*root_candidate_ref.get()).inverse().exponent();
 
 #ifdef DEBUG_VERBOSE
                     printf("found error locator polynomial root @ a^%3ld --> error location: a^%3d\n", i, error_location);
@@ -487,7 +487,7 @@ namespace mr {
                 const auto &syndrome_poly = syndrome_polys[i];
                 auto &syndrome_element = syndrome_elements[i];
 
-                const auto x_ref = galois_field_type::at(i+1);
+                const auto x_ref = galois_field_type::get_nonzero_element(i+1);
 
                 for(int j=0; j<signed(m); j++) {
                     if(syndrome_poly[j])
