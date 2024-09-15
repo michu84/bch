@@ -54,7 +54,7 @@ namespace mr {
             std::optional<coset_poly> polynomials[t]; // we must have t polynomials to correct t errors, but for syndromes we need 2*t with some repeating among available slots (cosets solve which apply where)
         };
 
-        constexpr static cyclotomic_cosets_type make_cyclotomic_cosets() {
+        consteval static cyclotomic_cosets_type make_cyclotomic_cosets() {
             cyclotomic_cosets_type cyclotomic;
             bool skip_redundant_mask[n] = {}; // skip redundant alpha powers
 
@@ -81,7 +81,7 @@ namespace mr {
             return cyclotomic;
         }
 
-        constexpr static minimal_polynomials_type make_minimal_polynomials() {
+        consteval static minimal_polynomials_type make_minimal_polynomials() {
             minimal_polynomials_type minimal_polys;
 
             const galois_field_element_polynomial_type coeff_1_poly(1, 0); // 1 as gf element polynomial
@@ -123,7 +123,7 @@ namespace mr {
             return minimal_polys;
         }
 
-        constexpr static generator_polynomial_type make_generator_polynomial() {
+        consteval static generator_polynomial_type make_generator_polynomial() {
             generator_polynomial_type gen_poly(1, 0); // represent scalar 1 to init the multiplications
 
             for(const auto &min_poly : minimal_polynomials.polynomials) {
@@ -139,15 +139,15 @@ namespace mr {
             return gen_poly;
         }
 
-        constexpr static size_t data_size_bits() {
+        consteval static size_t data_size_bits() {
             return n - generator_polynomial.degree();
         }
 
-        constexpr static size_t parity_size_bits() {
+        consteval static size_t parity_size_bits() {
             return generator_polynomial.degree();
         }
 
-        constexpr static size_t word_size_bits() {
+        consteval static size_t word_size_bits() {
             return n;
         }
 
@@ -171,7 +171,7 @@ namespace mr {
             size_t global[2*t];
         };
 
-        constexpr static std::optional<size_t> minimal_polynomial_global_index(const size_t &syndrome_index) {
+        consteval static std::optional<size_t> minimal_polynomial_global_index(const size_t &syndrome_index) {
             for(size_t c=0; c<t; c++) {
                 const auto &cosets = cyclotomic_cosets.cosets[c];
                 for(size_t s=0; (s < m) && cosets[s].has_value(); s++) {
@@ -187,7 +187,7 @@ namespace mr {
             return {};
         }
 
-        constexpr static syndrome_polynomials_gen_type make_syndrome_polynomials_gen() {
+        consteval static syndrome_polynomials_gen_type make_syndrome_polynomials_gen() {
             syndrome_polynomials_gen_type syndrome_polys;
             for(unsigned i=0; i<2*t; i++) {
                 const auto result = minimal_polynomial_global_index(i);
@@ -291,7 +291,7 @@ namespace mr {
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        constexpr static uint8_t make_mask_last_byte() {
+        consteval static uint8_t make_mask_last_byte() {
             uint8_t mask = 0;
             for(auto i=0; i<n_bits_last_byte; i++)
                 mask |= (1 << i);

@@ -175,7 +175,7 @@ namespace mr {
 
         using elements_type = std::array<element, n+2>; // +2 elements, one to represent 0, second to represent the cyclic wrap-around representation of 1 (with same value as element next to 0)
 
-        constexpr static elements_type make_elements() {
+        consteval static elements_type make_elements() {
             // extract the top coeff from primitive polynomial
             // and construct the replacement element for x^top = x^next + ...
 
@@ -225,7 +225,7 @@ namespace mr {
 
         using minimal_polynomial_finder_type = polynomial<element, m>;
 
-        constexpr static minimal_polynomial_type reduce_coefficients(const minimal_polynomial_finder_type &finder) {
+        consteval static minimal_polynomial_type reduce_coefficients(const minimal_polynomial_finder_type &finder) {
             minimal_polynomial_type out;
             for(size_t i=0; i<out.num_coeffs; i++) {
                 const auto exponent_has_value = finder.coeffs[i].exponent().has_value();
