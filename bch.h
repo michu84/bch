@@ -424,7 +424,7 @@ namespace mr {
                     const auto error_location = *root.inverse().exponent();
 
 #ifdef DEBUG_VERBOSE
-                    printf("found error locator polynomial root @ a^%3ld --> error location: a^%3d\n", i, error_location);
+                    printf("found error locator polynomial root @ a^%3lli --> error location: a^%3d\n", i, error_location);
 #endif
 
                     errors_mask[error_location] = true;
@@ -496,9 +496,9 @@ namespace mr {
 
 #ifdef DEBUG_VERBOSE
                 if(syndrome_poly.is_zero())
-                    printf("syndrome[%li]: %s --> 0\n", i, syndrome_polys[i].to_string().c_str());
+                    printf("syndrome[%lld]: %s --> 0\n", i, syndrome_polys[i].to_string().c_str());
                 else
-                    printf("syndrome[%li]: %s --> a^%3d\n", i, syndrome_polys[i].to_string().c_str(), *syndrome_element.exponent());
+                    printf("syndrome[%lld]: %s --> a^%3i\n", i, syndrome_polys[i].to_string().c_str(), *syndrome_element.exponent());
 #endif
             }
         }
@@ -597,7 +597,7 @@ namespace mr {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         static void print_bch_info() {
-            printf("BCH (m=%d, n=%d, t=ECC=%d, k=data_bits=%ld, parity_bits=%ld, primitive_polynomial=%s):\n",
+            printf("BCH (m=%d, n=%d, t=ECC=%d, k=data_bits=%lld, parity_bits=%lld, primitive_polynomial=%s):\n",
                    m, n, t, data_size_bits(), parity_size_bits(), galois_field_type::primitive_polynomial.to_string().c_str());
         }
 
