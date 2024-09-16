@@ -164,6 +164,13 @@ namespace mr {
             coeffs[x_power] = coeff_x;
         }
 
+        template<typename...Args>
+        constexpr polynomial(coeff_type &&coeff_x, const unsigned &x_power, Args &&...args)
+            : polynomial(std::forward<Args>(args)...)
+        {
+            coeffs[x_power] = std::move(coeff_x);
+        }
+
         template<unsigned other_max_order>
         constexpr polynomial(const polynomial<coeff_type, other_max_order> &other) {
             static_assert(other_max_order <= max_order, "detected potential polynomial overflow in copy ctor, a potential data loss!");
@@ -182,12 +189,12 @@ namespace mr {
 
         constexpr polynomial(const polynomial &other)
         {
-            polynomial_copy(other, *this);
+            *this = other; // invoke the copy assignment operator
         }
 
         constexpr polynomial(polynomial &&other) noexcept
         {
-            polynomial_move(std::move(other), *this);
+            *this = std::move(other); // invoke the move assignment operator
         }
 
         constexpr polynomial& operator = (const polynomial &other)

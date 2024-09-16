@@ -65,27 +65,9 @@ namespace mr {
                 : powr_rep(powr_rep_)
                 , poly_rep(poly_rep_) {}
 
-            constexpr element(const element &other)
-                : powr_rep(other.powr_rep)
-                , poly_rep(other.poly_rep) {}
-
-            constexpr element(element &&other) noexcept
-                : powr_rep(std::move(other.powr_rep))
-                , poly_rep(std::move(other.poly_rep)) {}
-
-            constexpr ~element() {}
-
-            constexpr element& operator = (const element &other) {
-                powr_rep = other.powr_rep;
-                poly_rep = other.poly_rep;
-                return *this;
-            }
-
-            constexpr element& operator = (element &&other) noexcept {
-                powr_rep = std::move(other.powr_rep);
-                poly_rep = std::move(other.poly_rep);
-                return *this;
-            }
+            constexpr element(element_polynomial_type &&poly_rep_, std::optional<element_power_type> &&powr_rep_) noexcept
+                : powr_rep(std::move(powr_rep_))
+                , poly_rep(std::move(poly_rep_)) {}
 
             constexpr operator bool() const {
                 return powr_rep.has_value()

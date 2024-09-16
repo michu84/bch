@@ -17,16 +17,6 @@ namespace mr {
             base::coeffs[power] = 1;
         }
 
-        constexpr gf2_polynomial(const gf2_polynomial &other) = default;
-
-        constexpr gf2_polynomial& operator = (const gf2_polynomial &other) = default;
-
-        constexpr gf2_polynomial(gf2_polynomial &&other) noexcept = default;
-
-        constexpr gf2_polynomial& operator = (gf2_polynomial &&other) noexcept = default;
-
-        constexpr ~gf2_polynomial() {}
-
     private:
         using base::base; // hide the inherited ctor
     };
@@ -39,16 +29,6 @@ namespace mr {
 
         constexpr static_gf2_polynomial()
             : base(Pwrs...) {} // represented value fixed by template args
-
-        constexpr static_gf2_polynomial(const static_gf2_polynomial &other) = default;
-
-        constexpr static_gf2_polynomial& operator = (const static_gf2_polynomial &other) = default;
-
-        constexpr static_gf2_polynomial(static_gf2_polynomial &&other) noexcept = default;
-
-        constexpr static_gf2_polynomial& operator = (static_gf2_polynomial &&other) noexcept = default;
-
-        constexpr ~static_gf2_polynomial() {}
 
     private:
         using base::base; // hide the inherited ctor
