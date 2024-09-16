@@ -113,7 +113,7 @@ namespace mr {
 
     template<typename T, unsigned from_max_order, unsigned to_max_order>
     constexpr void polynomial_move_unsafe(polynomial<T,from_max_order> &&from, polynomial<T,to_max_order> &to) noexcept
-    {        
+    {
         if constexpr (from_max_order < to_max_order) {
             constexpr auto moved = from_max_order + 1; // +1 for coeff x^0
             std::move(from.coeffs, from.coeffs + moved, to.coeffs);
@@ -359,20 +359,15 @@ namespace mr {
 
         constexpr div_result operator / (const polynomial &divisor) const
         {
-            // static_assert(false, "figure out constexpr version of this function");
             assert(!divisor.is_zero());
-
-            div_result out;
-
-            // q = 0
-            out.r = *this;
-
             const auto div_degree = divisor.degree();
 
+            div_result out{0, *this};
+            signed powr_diff{};
+
             while(!out.r.is_zero()
-                  && (out.r.degree() >= div_degree))
+                  && (powr_diff = out.r.degree() - div_degree) >= 0)
             {
-                const auto powr_diff = out.r.degree() - div_degree;
                 const polynomial dq(1, powr_diff);
 
                 out.q += dq;

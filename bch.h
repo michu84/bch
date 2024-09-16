@@ -450,7 +450,7 @@ namespace mr {
 
                 // int j because of galois_field_element_type::operator ^
                 for(int j=0; j<static_cast<const signed &>(error_locator_polynomial.num_coeffs); j++)
-                    result += error_locator_polynomial[j] * (root_candidate_ref ^ j);
+                    result += error_locator_polynomial[j] * (root_candidate_ref.get() ^ j);
 
                 if(result.poly().is_zero()) {
                     const auto error_location = (*root_candidate_ref.get()).inverse().exponent();
