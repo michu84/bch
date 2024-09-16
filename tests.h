@@ -290,5 +290,7 @@ struct measure_time_test<mr::measure_time<Resolution, ClockType>> {
             assert(time_diff > 0); // can't be faster than expected, too rigorous?
             assert(std::fabs(time_diff) < tolerance); // allow 100ms drift...
         } while(--repeats > 0);
+
+        std::cout << std::endl;
     }
 };
