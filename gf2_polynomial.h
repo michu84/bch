@@ -1,6 +1,7 @@
 #pragma once
 
 #include "polynomial.h"
+#include <utility>
 
 namespace mr {
 
@@ -16,8 +17,13 @@ namespace mr {
             base::coeffs[power] = 1;
         }
 
-        constexpr gf2_polynomial(const base &other)
-            : base(other) {}
+        constexpr gf2_polynomial(const gf2_polynomial &other) = default;
+
+        constexpr gf2_polynomial& operator = (const gf2_polynomial &other) = default;
+
+        constexpr gf2_polynomial(gf2_polynomial &&other) noexcept = default;
+
+        constexpr gf2_polynomial& operator = (gf2_polynomial &&other) noexcept = default;
 
         constexpr ~gf2_polynomial() {}
 
@@ -31,10 +37,16 @@ namespace mr {
         constexpr static const unsigned max_order = select_last_unsigned<Pwrs...>::value;
         using base = gf2_polynomial<max_order>;
 
-        constexpr static_gf2_polynomial() : base(Pwrs...) {} // represented value fixed by template args
+        constexpr static_gf2_polynomial()
+            : base(Pwrs...) {} // represented value fixed by template args
 
-        constexpr static_gf2_polynomial(const base &other)
-            : base(other) {}
+        constexpr static_gf2_polynomial(const static_gf2_polynomial &other) = default;
+
+        constexpr static_gf2_polynomial& operator = (const static_gf2_polynomial &other) = default;
+
+        constexpr static_gf2_polynomial(static_gf2_polynomial &&other) noexcept = default;
+
+        constexpr static_gf2_polynomial& operator = (static_gf2_polynomial &&other) noexcept = default;
 
         constexpr ~static_gf2_polynomial() {}
 

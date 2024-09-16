@@ -112,7 +112,7 @@ namespace mr {
     }
 
     template<typename T, unsigned from_max_order, unsigned to_max_order>
-    constexpr void polynomial_move_unsafe(const polynomial<T,from_max_order> &from, polynomial<T,to_max_order> &to)
+    constexpr void polynomial_move_unsafe(polynomial<T,from_max_order> &&from, polynomial<T,to_max_order> &to) noexcept
     {        
         if constexpr (from_max_order < to_max_order) {
             constexpr auto moved = from_max_order + 1; // +1 for coeff x^0
@@ -126,11 +126,11 @@ namespace mr {
     }
 
     template<typename T, unsigned from_max_order, unsigned to_max_order>
-    constexpr void polynomial_move(const polynomial<T,from_max_order> &from, polynomial<T,to_max_order> &to)
+    constexpr void polynomial_move(polynomial<T,from_max_order> &&from, polynomial<T,to_max_order> &to) noexcept
     {
         static_assert(from_max_order <= to_max_order, "copy destination polynomial order not enough to contain all potential source polynomial data!");
 
-        polynomial_move_unsafe(from ,to);
+        polynomial_move_unsafe(std::move(from), to);
     }
 
     // polynomial of type P(x) = C0*x^0 + C1*x^1 + C2*x^2 + ... + Cn*x^n
@@ -153,7 +153,7 @@ namespace mr {
             coeffs[0] = v;
         }
 
-        constexpr polynomial(coeff_type &&v) {
+        constexpr polynomial(coeff_type &&v) noexcept {
             coeffs[0] = std::move(v);
         }
 
@@ -172,10 +172,10 @@ namespace mr {
         }
 
         template<unsigned other_max_order>
-        constexpr polynomial(polynomial<coeff_type, other_max_order> &&other) {
+        constexpr polynomial(polynomial<coeff_type, other_max_order> &&other) noexcept {
             static_assert(other_max_order <= max_order, "detected potential polynomial overflow in copy ctor, a potential data loss!");
             // assert(other_max_order <= this->degree());
-            polynomial_move(other, *this);
+            polynomial_move(std::move(other), *this);
         }
 
         constexpr ~polynomial() {}
@@ -185,9 +185,9 @@ namespace mr {
             polynomial_copy(other, *this);
         }
 
-        constexpr polynomial(polynomial &&other)
+        constexpr polynomial(polynomial &&other) noexcept
         {
-            polynomial_move(other, *this);
+            polynomial_move(std::move(other), *this);
         }
 
         constexpr polynomial& operator = (const polynomial &other)
@@ -196,9 +196,9 @@ namespace mr {
             return *this;
         }
 
-        constexpr polynomial& operator = (polynomial &&other)
+        constexpr polynomial& operator = (polynomial &&other) noexcept
         {
-            polynomial_move(other, *this);
+            polynomial_move(std::move(other), *this);
             return *this;
         }
 

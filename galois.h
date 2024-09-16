@@ -69,7 +69,7 @@ namespace mr {
                 : powr_rep(other.powr_rep)
                 , poly_rep(other.poly_rep) {}
 
-            constexpr element(element &&other)
+            constexpr element(element &&other) noexcept
                 : powr_rep(std::move(other.powr_rep))
                 , poly_rep(std::move(other.poly_rep)) {}
 
@@ -81,7 +81,7 @@ namespace mr {
                 return *this;
             }
 
-            constexpr element& operator = (element &&other) {
+            constexpr element& operator = (element &&other) noexcept {
                 powr_rep = std::move(other.powr_rep);
                 poly_rep = std::move(other.poly_rep);
                 return *this;
