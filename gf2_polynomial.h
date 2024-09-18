@@ -11,7 +11,7 @@ namespace mr {
         using base = polynomial<bit_t, max_order>;
 
         template<typename...Powers>
-        constexpr gf2_polynomial(const unsigned &power, Powers &&...powers)
+        constexpr gf2_polynomial(unsigned power, Powers &&...powers)
             : gf2_polynomial::gf2_polynomial(std::forward<Powers>(powers)...)
         {
             base::coeffs[power] = 1;

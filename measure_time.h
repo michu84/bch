@@ -20,7 +20,7 @@ namespace mr {
         }
 
         static auto end(const auto &start) {
-            return clock_type::now() - start;
+            return clock_type::now() - start; // elapsed
         }
 
         static auto seconds(const auto &elapsed) {

@@ -25,6 +25,7 @@ namespace mr {
         using galois_field_type = binary_galois_field<m, PrimPolyNonzeroPowers...>;
 
         using galois_field_element_type = typename galois_field_type::element;
+        using galois_field_element_power_type = typename galois_field_type::element_power_type;
         using galois_field_element_polynomial_type = typename galois_field_type::element_polynomial_type;
 
         using minimal_polynomial_finder_type = polynomial<galois_field_element_type, m>; // each coefficient is an gf element polynomial
@@ -37,7 +38,7 @@ namespace mr {
         using error_pattern_polynomial_type = polynomial<bit_t, n-1>;
 
         // can't return constexpr std::vector, need to improvise with a struct, maybe std::array?
-        using coset_power_type = unsigned int;
+        using coset_power_type = galois_field_element_power_type;
 
         struct cyclotomic_cosets_type {
             struct coset {
@@ -60,12 +61,14 @@ namespace mr {
             cyclotomic_cosets_type cyclotomic;
             bool skip_redundant_mask[n] = {}; // skip redundant alpha powers
 
-            for(unsigned i=1, ci=0; i<2*t; i+=2) { // skip 0 as it's not effective anyway, step=2 since even powers still are ineffective
+            const auto _2t = static_cast<coset_power_type>(2 * t);
+
+            for(coset_power_type i=1, ci=0; i<_2t; i+=2) { // skip 0 as it's not effective anyway, step=2 since even powers still are ineffective
                 auto &alpha_power_cosets = cyclotomic.cosets[ci];
                 bool cosets_found = false;
 
-                for(size_t j=0, cj=0; j<m; j++) {
-                    const auto alpha_power = (i << j) % n;
+                for(coset_power_type j=0, cj=0; j<static_cast<coset_power_type>(m); j++) {
+                    const auto alpha_power = (i << j) % static_cast<coset_power_type>(n);
                     if(!alpha_power // skip zero powers
                         || skip_redundant_mask[alpha_power]) { // don't repeat alpha_power values
                         continue;
@@ -173,11 +176,11 @@ namespace mr {
             size_t global[2*t];
         };
 
-        consteval static std::optional<size_t> minimal_polynomial_global_index(const size_t &syndrome_index) {
+        consteval static std::optional<size_t> minimal_polynomial_global_index(size_t syndrome_index) {
             for(size_t c=0; c<t; c++) {
                 const auto &cosets = cyclotomic_cosets.cosets[c];
                 for(size_t s=0; (s < m) && cosets[s].has_value(); s++) {
-                    const auto coset_power_match = cosets[s]->power == (syndrome_index+1);
+                    const auto coset_power_match = cosets[s]->power == static_cast<coset_power_type>(syndrome_index+1);
                     const auto &poly = minimal_polynomials.polynomials[c];
                     const auto poly_coset_base_match = poly->coset_base == cosets[s]->base;
 
@@ -448,8 +451,7 @@ namespace mr {
 
                 galois_field_element_type result;
 
-                // int j because of galois_field_element_type::operator ^
-                for(int j=0; j<static_cast<const signed &>(error_locator_polynomial.num_coeffs); j++)
+                for(galois_field_element_power_type j=0; j<static_cast<galois_field_element_power_type>(error_locator_polynomial.num_coeffs); j++)
                     result += error_locator_polynomial[j] * (root_candidate_ref.get() ^ j);
 
                 if(result.poly().is_zero()) {
@@ -491,7 +493,7 @@ namespace mr {
 
                 const auto x_ref = galois_field_type::get_nonzero_element(i+1);
 
-                for(int j=0; j<signed(m); j++) {
+                for(galois_field_element_power_type j=0; j<galois_field_element_power_type(m); j++) {
                     if(syndrome_poly[j])
                         syndrome_element += x_ref.get()^j; // gf element power operator
                 }

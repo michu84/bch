@@ -19,7 +19,7 @@ namespace mr {
         using minimal_polynomial_type = primitive_poly_type; // same as primitive poly
 
         using element_polynomial_type = polynomial<bit_t, m-1>; // no element has polynomial of m'th order so it's 1 less than primitive one
-        using element_power_type = unsigned;
+        using element_power_type = signed;
 
         constexpr static const auto primitive_polynomial = static_gf2_polynomial<PrimPwrs...>();
 
@@ -122,7 +122,7 @@ namespace mr {
 
             // taking the power
 
-            constexpr element operator ^ (const int &_pow) const
+            constexpr element operator ^ (element_power_type _pow) const
             {
                 if(!powr_rep.has_value())
                     return binary_galois_field::elements[0];
@@ -141,7 +141,7 @@ namespace mr {
                 return negative_pow ? out.inverse() : out;
             }
 
-            constexpr element& operator ^= (const int &pow)
+            constexpr element& operator ^= (element_power_type pow)
             {
                 return (*this = *this ^ pow);
             }
@@ -194,15 +194,15 @@ namespace mr {
 
         using element_ref_type = std::reference_wrapper<const element>;
 
-        constexpr static element_ref_type get_element(const element_power_type &power_index) {
-            return elements[power_index];
+        constexpr static element_ref_type get_element(element_power_type index) {
+            return elements[index];
         }
 
         constexpr static element_ref_type get_zero_element() {
             return get_element(0);
         }
 
-        constexpr static element_ref_type get_nonzero_element(const element_power_type &power_index) {
+        constexpr static element_ref_type get_nonzero_element(element_power_type power_index) {
             return get_element(power_index + 1); // +1 for zero first element
         }
 
