@@ -91,8 +91,11 @@ struct print_poly_coeffs<C> {
     }
 };
 
+template<typename>
+struct print_bch;
+
 template<unsigned m, unsigned t, unsigned...poly>
-struct print_bch_type {
+struct print_bch<mr::bch<m, t, poly...>> {
     constexpr void operator() (std::stringstream &ss) const {
         ss << "mr::bch<" << m << ", " << t << ", ";
 
@@ -103,10 +106,13 @@ struct print_bch_type {
     }
 };
 
+template<typename>
+struct test_bch;
+
 template<unsigned m,
          unsigned t,
          unsigned...PrimitivePolynomialCoeffs>
-struct test_m_t_coeffs {
+struct test_bch<mr::bch<m, t, PrimitivePolynomialCoeffs...>> {
     using bch_type = mr::bch<m, t, PrimitivePolynomialCoeffs...>;
 
     void operator() (unsigned add_errors) const {
@@ -126,13 +132,12 @@ struct test_m_t_coeffs {
         constexpr auto msg_size_bytes = msg_size_bits / 8 + (msg_size_bits % 8 != 0);
 
         std::stringstream bch_type_ss;
-        print_bch_type<m, t, PrimitivePolynomialCoeffs...>{} (bch_type_ss);
+        print_bch<bch_type>{} (bch_type_ss);
 
         const auto bch_type_str = bch_type_ss.str();
 
         std::stringstream encode_type_ss;
         encode_type_ss << bch_type_str << "::encode_codeword...";
-
 
 #ifdef DEBUG_VERBOSE_ENC_DEC
         const auto measure_result = mr::measure_time{} (encode_type_ss.str(), [&] {
@@ -223,38 +228,45 @@ struct test_m_t_coeffs {
     }
 };
 
+template<typename>
+struct test_bch_iterator;
+
 template<unsigned m,
          unsigned t,
          unsigned...PrimitivePolynomialCoeffs>
-struct test_m_t_coeffs_iterator {
+struct test_bch_iterator<mr::bch<m, t, PrimitivePolynomialCoeffs...>> {
+    using bch_type = mr::bch<m, t, PrimitivePolynomialCoeffs...>;
+    using test_type = test_bch<bch_type>;
+
     void operator() (unsigned n_random_errors, unsigned n_times) const {
         for(size_t j=n_random_errors; j>0; j--)
-            test_m_t_coeffs<m, t, PrimitivePolynomialCoeffs...> {}
+            test_type {}
             (j, n_times);
     }
 };
 
 template<typename>
-struct bch_tester;
+struct bch_test_benchmark;
 
 template<unsigned m, unsigned t, unsigned...poly>
-struct bch_tester<mr::bch<m, t, poly...>> {
-    using test_procedure_type = test_m_t_coeffs<m, t, poly...>;
-    using print_procedure_type = print_bch_type<m, t, poly...>;
+struct bch_test_benchmark<mr::bch<m, t, poly...>> {
+    using bch_type = mr::bch<m, t, poly...>;
+    using test_bch_type = test_bch<bch_type>;
+    using print_test_procedure_bch_type = print_bch<bch_type>;
 
     void operator() (auto repeats) const {
         using measurement_type = mr::measure_time<>;
 
         const auto started = measurement_type::start();
 
-        test_procedure_type{}
+        test_bch_type{}
         (t, repeats);
 
         const auto elapsed = measurement_type::end(started);
 
         std::stringstream bch_type_ss;
 
-        print_procedure_type{}
+        print_test_procedure_bch_type{}
         (bch_type_ss);
 
         std::cout << bch_type_ss.str() << " " << repeats << " test iterations (encode -> add errors -> decode) took "

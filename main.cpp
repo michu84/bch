@@ -9,7 +9,7 @@
 //   + x^34 + x^35 + x^39 + x^40 + x^41 + x^42 + x^44 + x^49 + x^50 + x^51 + x^59 + x^60 + x^62
 //   + x^63 + x^64 + x^66 + x^67 + x^68 + x^71 + x^72 + x^74 + x^75 + x^76 + x^77
 
-using ATSC_A336_codec_type = mr::bch<7, 13, 0, 6, 7>;
+using atsc_a336_codec_type = mr::bch<7, 13, 0, 6, 7>;
 
 // Phobos Lander telemetry BCH(127,113,2) codes: m=7, n=127, k=113, t=2, primitive = 1 + x^3 + x^7, generator = 1 + x^1 + x^2 + x^4 + x^5 + x^6 + x^8 + x^9 + x^14
 
@@ -30,10 +30,10 @@ int main(int argc, char* argv[])
     // measure_time_test<mr::measure_time<>>{}
     // (3);
 
-    bch_tester<ATSC_A336_codec_type>{}
+    bch_test_benchmark<atsc_a336_codec_type>{}
     (repeats);
 
-    // bch_tester<phobos_lander_codec_type>{}
+    // bch_test_benchmark<phobos_lander_codec_type>{}
     // (repeats);
 
     return 0;
