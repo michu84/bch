@@ -252,7 +252,7 @@ template<unsigned m, unsigned t, unsigned...poly>
 struct bch_test_benchmark<mr::bch<m, t, poly...>> {
     using bch_type = mr::bch<m, t, poly...>;
     using test_bch_type = test_bch<bch_type>;
-    using print_test_procedure_bch_type = print_bch<bch_type>;
+    using print_tested_bch_type = print_bch<bch_type>;
 
     void operator() (auto repeats) const {
         using measurement_type = mr::measure_time<>;
@@ -266,7 +266,7 @@ struct bch_test_benchmark<mr::bch<m, t, poly...>> {
 
         std::stringstream bch_type_ss;
 
-        print_test_procedure_bch_type{}
+        print_tested_bch_type{}
         (bch_type_ss);
 
         std::cout << bch_type_ss.str() << " " << repeats << " test iterations (encode -> add errors -> decode) took "
