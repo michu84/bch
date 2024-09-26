@@ -7,9 +7,9 @@
 
 namespace mr {
 
-    template<unsigned M, // power of 2 factor in the expressions for code length and number of elements in the Galois field
+    template<unsigned M, // power of 2 factor in the expressions for code length and for the number of elements in the Galois field
              unsigned ECC, // error correction capability
-             unsigned...PrimPolyNonzeroPowers> // unit powers of primitive polynomial to generate Galois field
+             unsigned...PrimPolyNonzeroPowers> // nonzero (unitary) coefficient powers of primitive polynomial generating the Galois field
     struct bch {
         static_assert(M >= 3, "sanity check!");
         static_assert(ECC < (1 << (M-1)), "sanity check!");
@@ -28,7 +28,7 @@ namespace mr {
         using galois_field_element_power_type = typename galois_field_type::element_power_type;
         using galois_field_element_polynomial_type = typename galois_field_type::element_polynomial_type;
 
-        using minimal_polynomial_finder_type = polynomial<galois_field_element_type, m>; // each coefficient is an gf element polynomial
+        using minimal_polynomial_finder_type = polynomial<galois_field_element_type, m>; // each coefficient is a gf element polynomial
         using minimal_polynomial_type = typename galois_field_type::minimal_polynomial_type;
 
         using generator_polynomial_type = polynomial<bit_t, n>;
@@ -37,7 +37,6 @@ namespace mr {
 
         using error_pattern_polynomial_type = polynomial<bit_t, n-1>;
 
-        // can't return constexpr std::vector, need to improvise with a struct, maybe std::array?
         using coset_power_type = galois_field_element_power_type;
 
         struct cyclotomic_cosets_type {
@@ -48,7 +47,6 @@ namespace mr {
             std::optional<coset> cosets[t][m]; // std::optional allows to fill in only valid fields with values, this may differ between bch<m, t, ...>, some odd powers may be missing because of cyclic redundancy
         };
 
-        // can't return constexpr std::vector, need to improvise with a struct, maybe std::array?
         struct minimal_polynomials_type {
             struct coset_poly {
                 coset_power_type coset_base;
